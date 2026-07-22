@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CaretDown, CaretUp, Circle, NavigationArrow } from '@phosphor-icons/react'
-import { COLORS, GENDERS, PLAYBACK_SECONDS } from '../config.js'
+import { COLORS, GENDERS } from '../config.js'
 
 const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
 const RIDER_SYMBOLS = [
@@ -43,41 +43,15 @@ function PlayIcon({ playing }) {
   </svg>
 }
 
-function RouteIcon() {
-  return <svg width="27" height="27" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-    <path d="M3 24c5-11 9 4 14-7 3-7 7-5 12-10" stroke="currentColor" strokeWidth="1.8" strokeDasharray="3 3" strokeLinecap="round" />
-    <path d="m24 5 5 2-2 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx="4" cy="24" r="2" fill="currentColor" />
-  </svg>
-}
-
-function DatabaseIcon() {
-  return <svg width="25" height="25" viewBox="0 0 30 30" fill="none" aria-hidden="true">
-    <ellipse cx="15" cy="6" rx="10" ry="4" stroke="currentColor" strokeWidth="1.7" />
-    <path d="M5 6v9c0 2.2 4.5 4 10 4s10-1.8 10-4V6M5 15v8c0 2.2 4.5 4 10 4s10-1.8 10-4v-8" stroke="currentColor" strokeWidth="1.7" />
-  </svg>
-}
-
 function dateParts(date) {
   const [year, month, day] = date.split('-').map(Number)
   return { year, month, day }
-}
-
-function formatPeriod(date) {
-  const { year, month, day } = dateParts(date)
-  return `${day} ${MONTHS[month - 1]} ${year} · día completo`
 }
 
 function formatDateOption(dayData) {
   const { month, day } = dateParts(dayData.date)
   const count = dayData.hours.reduce((total, hour) => total + hour.count, 0)
   return `${String(day).padStart(2, '0')} ${MONTHS[month - 1]} · ${count.toLocaleString('es-MX')} viajes`
-}
-
-function formatClock(seconds) {
-  const total = Math.round(seconds)
-  const values = [Math.floor(total / 3600), Math.floor(total % 3600 / 60), total % 60]
-  return values.map((value) => String(value).padStart(2, '0')).join(':')
 }
 
 function GenderButton({ code, active, onClick }) {
@@ -88,51 +62,13 @@ function GenderButton({ code, active, onClick }) {
   </button>
 }
 
-function TravelDistribution({ bins, currentTime, activeCount }) {
-  const max = Math.max(1, ...bins)
-  const barWidth = 100 / bins.length
-  const currentBin = Math.min(bins.length - 1, Math.floor(currentTime / PLAYBACK_SECONDS * bins.length))
-  const currentX = currentTime / PLAYBACK_SECONDS * 100
-
-  return <div className="travel-distribution">
-    <div className="distribution-label">
-      <span>Viajes activos durante el día</span>
-      <strong>{activeCount.toLocaleString('es-MX')} ahora</strong>
-    </div>
-    <svg
-      viewBox="0 0 100 34"
-      preserveAspectRatio="none"
-      role="img"
-      aria-label={`Distribución de viajes activos en intervalos de 15 minutos. Máximo ${max.toLocaleString('es-MX')}; ${activeCount.toLocaleString('es-MX')} en la hora actual.`}
-    >
-      {bins.map((count, index) => {
-        const height = Math.max(1, count / max * 30)
-        return <rect
-          key={index}
-          className={index === currentBin ? 'activity-bar activity-bar-current' : 'activity-bar'}
-          x={index * barWidth}
-          y={34 - height}
-          width={Math.max(0.45, barWidth * 0.72)}
-          height={height}
-        />
-      })}
-      <line className="current-time-marker" x1={currentX} x2={currentX} y1="0" y2="34" />
-    </svg>
-  </div>
-}
-
 export default function Sidebar({
-  summary,
   days,
   selectedDate,
   onDateChange,
   genders,
   setGenders,
   filteredCount,
-  activeCount,
-  activityBins,
-  currentTime,
-  setCurrentTime,
   playing,
   setPlaying,
   speed,
@@ -169,7 +105,10 @@ export default function Sidebar({
   return <aside className="sidebar" data-collapsed={collapsed} aria-label="Controles de la simulación">
     <header className="brand">
       <BikeIcon />
-      <h1>Bicicletas GDL</h1>
+      <div className="brand-copy">
+        <h1>Bicicletas GDL</h1>
+        <span>MiBici</span>
+      </div>
       <button
         className="theme-toggle"
         type="button"
@@ -197,27 +136,15 @@ export default function Sidebar({
     </header>
 
     <div id="sidebar-content" hidden={collapsed}>
-    <div className="month-summary">
-      <strong>{summary.mappedTrips.toLocaleString('es-MX')}</strong>
-      <span>viajes con coordenadas · junio 2026 completo</span>
-    </div>
-
     <div className="date-selection">
-      <label>Día
+      <label>Día de reproducción
         <select className="select" value={selectedDate} onChange={(event) => onDateChange(event.target.value)}>
           {days.map((day) => <option key={day.date} value={day.date}>{formatDateOption(day)}</option>)}
         </select>
       </label>
     </div>
 
-    <p className="period">{formatPeriod(selectedDate)}</p>
-    <div className="trip-count">
-      <strong>{loading ? '—' : filteredCount.toLocaleString('es-MX')}</strong>
-      <span>viajes en este día</span>
-    </div>
-
-    <div className="clock">{formatClock(currentTime)}</div>
-    <div className="active-count" aria-live="polite">{activeCount.toLocaleString('es-MX')} bicicletas activas</div>
+    <span className="section-label playback-label">Reproducción</span>
     <button className="play-button" type="button" disabled={loading || !filteredCount} onClick={() => setPlaying((current) => !current)}>
       <PlayIcon playing={playing} /> {playing ? 'Pausar' : 'Reproducir'}
     </button>
@@ -230,25 +157,6 @@ export default function Sidebar({
         aria-pressed={speed === value}
         onClick={() => setSpeed(value)}
       >{value}×</button>)}
-    </div>
-
-    <div className="timeline">
-      <TravelDistribution bins={activityBins} currentTime={currentTime} activeCount={activeCount} />
-      <div className="time-labels">
-        <span>00:00:00</span>
-        <span>24:00:00</span>
-      </div>
-      <input
-        className="range"
-        type="range"
-        min="0"
-        max={PLAYBACK_SECONDS}
-        step="60"
-        value={Math.round(currentTime)}
-        disabled={loading}
-        aria-label="Hora del día"
-        onChange={(event) => setCurrentTime(Number(event.target.value))}
-      />
     </div>
 
     <section className="sidebar-section" aria-labelledby="rider-symbol-title">
@@ -272,19 +180,12 @@ export default function Sidebar({
     </section>
 
     <section className="sidebar-section" aria-labelledby="filters-title">
-      <h2 id="filters-title">Filtros del día</h2>
-      <div className="gender-title">Género</div>
+      <h2 id="filters-title">Género del usuario</h2>
       <div className="gender-grid">
         {GENDERS.map((code) => <GenderButton key={code} code={code} active={genders.includes(code)} onClick={() => toggleGender(code)} />)}
       </div>
 
     </section>
-
-    <footer className="source">
-      <div className="source-line"><RouteIcon /><span>{summary.streetRoutedPairs.toLocaleString('es-MX')} pares sobre red vial</span></div>
-      <div className="source-line"><DatabaseIcon /><span>MiBici · junio 2026 · {summary.unmappedTrips.toLocaleString('es-MX')} viajes sin coordenadas</span></div>
-      <small>Los campos provienen del CSV oficial. La geometría intermedia es inferida y los archivos horarios del día se cargan bajo demanda.</small>
-    </footer>
     </div>
   </aside>
 }

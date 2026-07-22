@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Sidebar from './components/Sidebar.jsx'
+import PlaybackRail from './components/PlaybackRail.jsx'
 import {
   DEFAULT_CENTER,
   GENDERS,
@@ -200,17 +201,12 @@ export default function App() {
 
   return <div className="app-shell" data-theme={theme}>
     <Sidebar
-      summary={MONTH_MANIFEST.summary}
       days={MONTH_MANIFEST.days}
       selectedDate={selectedDate}
       onDateChange={setSelectedDate}
       genders={genders}
       setGenders={setGenders}
       filteredCount={filteredTrips.length}
-      activeCount={activeCount}
-      activityBins={activityBins}
-      currentTime={currentTime}
-      setCurrentTime={setCurrentTime}
       playing={playing}
       setPlaying={setPlaying}
       speed={speed}
@@ -234,6 +230,13 @@ export default function App() {
       riderSymbol={riderSymbol}
       theme={theme}
       statusMessage={mapMessage}
+    />
+    <PlaybackRail
+      bins={activityBins}
+      currentTime={currentTime}
+      activeCount={activeCount}
+      onTimeChange={setCurrentTime}
+      disabled={loading}
     />
   </div>
 }
