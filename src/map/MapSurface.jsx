@@ -18,25 +18,17 @@ function drawRiderSymbol(context, symbol, color) {
     context.arc(0, 0, 5, 0, Math.PI * 2)
     context.fillStyle = color
     context.fill()
-    context.lineWidth = 2.5
-    context.strokeStyle = 'rgba(3, 8, 12, .96)'
-    context.stroke()
     return
   }
 
-  for (const [fill, scale] of [['rgba(3, 8, 12, .96)', 1.35], [color, 1]]) {
-    context.save()
-    context.scale(scale, scale)
-    context.beginPath()
-    context.moveTo(7, 0)
-    context.lineTo(-5, -5.5)
-    context.lineTo(-2.3, 0)
-    context.lineTo(-5, 5.5)
-    context.closePath()
-    context.fillStyle = fill
-    context.fill()
-    context.restore()
-  }
+  context.beginPath()
+  context.moveTo(7, 0)
+  context.lineTo(-5, -5.5)
+  context.lineTo(-2.3, 0)
+  context.lineTo(-5, 5.5)
+  context.closePath()
+  context.fillStyle = color
+  context.fill()
 }
 
 function getPinchMetrics(points) {
