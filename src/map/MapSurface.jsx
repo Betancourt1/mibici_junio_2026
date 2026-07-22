@@ -306,6 +306,9 @@ const MapSurface = forwardRef(function MapSurface({
   }
 
   const tooltipStation = (stationId) => stationById.get(stationId)?.name ?? `Estación ${stationId}`
+  const tooltipAge = (birthYear) => Number.isInteger(birthYear) && birthYear >= 1900 && birthYear <= 2026
+    ? `${2026 - birthYear} años`
+    : 'Sin dato'
   const tooltipLeft = riderDetails
     ? Math.max(Math.min(150, size.width / 2), Math.min(size.width - Math.min(150, size.width / 2), riderDetails.x))
     : 0
@@ -361,6 +364,7 @@ const MapSurface = forwardRef(function MapSurface({
     >
       {riderDetails.pinned && <button type="button" aria-label="Cerrar detalles del viaje" onClick={clearRiderDetails}>×</button>}
       <strong>Usuario {riderDetails.trip.user}</strong>
+      <span><b>Edad aprox.</b>{tooltipAge(riderDetails.trip.birth)}</span>
       <span><b>Origen</b>{tooltipStation(riderDetails.trip.origin)}</span>
       <span><b>Destino</b>{tooltipStation(riderDetails.trip.destination)}</span>
     </div>}
