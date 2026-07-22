@@ -145,18 +145,20 @@ export default function Sidebar({
     </div>
 
     <span className="section-label playback-label">Reproducción</span>
-    <button className="play-button" type="button" disabled={loading || !filteredCount} onClick={() => setPlaying((current) => !current)}>
-      <PlayIcon playing={playing} /> {playing ? 'Pausar' : 'Reproducir'}
-    </button>
+    <div className="playback-controls">
+      <button className="play-button" type="button" aria-label={playing ? 'Pausar' : 'Reproducir'} disabled={loading || !filteredCount} onClick={() => setPlaying((current) => !current)}>
+        <PlayIcon playing={playing} />
+      </button>
 
-    <div className="speed-grid" aria-label="Velocidad de reproducción">
-      {[1, 60, 300, 1800].map((value) => <button
-        key={value}
-        className="control-button"
-        type="button"
-        aria-pressed={speed === value}
-        onClick={() => setSpeed(value)}
-      >{value}×</button>)}
+      <div className="speed-grid" aria-label="Velocidad de reproducción">
+        {[1, 60, 300, 1800].map((value) => <button
+          key={value}
+          className="control-button"
+          type="button"
+          aria-pressed={speed === value}
+          onClick={() => setSpeed(value)}
+        >{value}×</button>)}
+      </div>
     </div>
 
     <section className="sidebar-section" aria-labelledby="rider-symbol-title">
