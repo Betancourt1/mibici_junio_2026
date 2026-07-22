@@ -269,7 +269,6 @@ input[type="range"] {
 
 .speed-grid,
 .symbol-grid,
-.zoom-grid,
 .gender-grid,
 .actions {
   display: grid;
@@ -434,21 +433,11 @@ select:focus-visible,
   font-weight: 720;
 }
 
-.zoom-grid {
-  grid-template-columns: 58px 58px minmax(0, 1fr);
-}
-
 .control-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-}
-
-.center-button {
-  border-color: #9d8708;
-  color: var(--yellow);
-  font-weight: 700;
 }
 
 .gender-title {
@@ -486,7 +475,7 @@ select:focus-visible,
 }
 
 .actions {
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: 1fr;
   margin-top: 11px;
 }
 
@@ -497,12 +486,6 @@ select:focus-visible,
   gap: 7px;
   padding: 0 8px;
   font-size: 11px;
-}
-
-.action-primary {
-  border-color: #9d8708;
-  color: var(--yellow);
-  font-weight: 700;
 }
 
 .source {
@@ -665,9 +648,67 @@ select:focus-visible,
   cursor: pointer;
 }
 
+.map-navigation {
+  position: absolute;
+  right: 18px;
+  bottom: 22px;
+  z-index: 4;
+  display: grid;
+  width: 58px;
+  gap: 10px;
+  color: #151718;
+}
+
+.map-recenter,
+.map-zoom-stack button {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgb(20 24 27 / 10%);
+  background: #fff;
+  color: #151718;
+  cursor: pointer;
+}
+
+.map-recenter {
+  border-radius: 16px;
+  box-shadow: 0 7px 20px rgb(0 0 0 / 28%);
+}
+
+.map-zoom-stack {
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 7px 20px rgb(0 0 0 / 28%);
+}
+
+.map-zoom-stack button {
+  border: 0;
+}
+
+.map-zoom-stack button + button {
+  border-top: 1px solid #d8dcde;
+}
+
+.map-recenter:hover,
+.map-zoom-stack button:hover {
+  background: #f1f3f4;
+}
+
+.map-recenter:active,
+.map-zoom-stack button:active {
+  background: #e5e8ea;
+}
+
+.map-zoom-stack button:disabled {
+  color: #a2a8ac;
+  cursor: not-allowed;
+}
+
 .map-attribution {
   position: absolute;
-  right: 7px;
+  right: 88px;
   bottom: 5px;
   z-index: 2;
   padding: 2px 5px;
@@ -818,8 +859,7 @@ select:focus-visible,
   .control-button,
   .gender-button,
   .action-button,
-  .select,
-  .input {
+  .select {
     min-height: 44px;
   }
 
@@ -858,16 +898,29 @@ select:focus-visible,
     bottom: auto;
   }
 
+  .map-navigation {
+    right: 12px;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    width: 52px;
+    gap: 8px;
+  }
+
+  .map-recenter,
+  .map-zoom-stack button {
+    width: 52px;
+    height: 52px;
+  }
+
+  .sidebar:not([data-collapsed="true"]) + .map-surface .map-navigation {
+    bottom: calc(min(72dvh, 660px) + 12px + env(safe-area-inset-bottom));
+  }
+
   .app-shell[data-theme="light"] .sidebar:not([data-collapsed="true"]) .brand {
     background: rgb(250 252 253 / 98%);
   }
 }
 
 @media (max-width: 420px) {
-  .actions {
-    grid-template-columns: 1fr;
-  }
-
   .play-button {
     width: 100%;
   }

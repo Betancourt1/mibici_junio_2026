@@ -223,9 +223,6 @@ export default function App() {
       setRiderSymbol={setRiderSymbol}
       theme={theme}
       setTheme={setTheme}
-      zoom={zoom}
-      setZoom={setZoom}
-      onCenter={centerGuadalajara}
       onReset={resetFilters}
       loading={loading}
     />
@@ -237,6 +234,7 @@ export default function App() {
       onCenterChange={setCenter}
       zoom={zoom}
       onZoomChange={setZoom}
+      onCenter={centerGuadalajara}
       currentTime={currentTime}
       riderSymbol={riderSymbol}
       theme={theme}

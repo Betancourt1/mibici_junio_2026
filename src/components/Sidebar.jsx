@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Circle, NavigationArrow } from '@phosphor-icons/react'
-import { COLORS, GENDERS, MAX_ZOOM, MIN_ZOOM, PLAYBACK_SECONDS } from '../config.js'
+import { COLORS, GENDERS, PLAYBACK_SECONDS } from '../config.js'
 
 const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
 const RIDER_SYMBOLS = [
@@ -40,20 +40,6 @@ function PlayIcon({ playing }) {
     {playing
       ? <path d="M7 4v12M13 4v12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
       : <path d="m6 4 10 6-10 6V4Z" fill="currentColor" />}
-  </svg>
-}
-
-function ZoomIcon({ plus }) {
-  return <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-    <path d={plus ? 'M4 10h12M10 4v12' : 'M4 10h12'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-}
-
-function TargetIcon() {
-  return <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-    <circle cx="10" cy="10" r="6" stroke="currentColor" strokeWidth="1.8" />
-    <circle cx="10" cy="10" r="2" fill="currentColor" />
-    <path d="M10 1v3M10 16v3M1 10h3M16 10h3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
   </svg>
 }
 
@@ -161,9 +147,6 @@ export default function Sidebar({
   setRiderSymbol,
   theme,
   setTheme,
-  zoom,
-  setZoom,
-  onCenter,
   onReset,
   loading,
 }) {
@@ -284,15 +267,6 @@ export default function Sidebar({
       </div>
     </section>
 
-    <section className="sidebar-section" aria-labelledby="map-controls-title">
-      <span id="map-controls-title" className="section-label">Zoom del mapa · nivel {zoom}</span>
-      <div className="zoom-grid">
-        <button className="control-button" type="button" aria-label="Alejar mapa" onClick={() => setZoom((current) => Math.max(MIN_ZOOM, current - 1))}><ZoomIcon plus={false} /></button>
-        <button className="control-button" type="button" aria-label="Acercar mapa" onClick={() => setZoom((current) => Math.min(MAX_ZOOM, current + 1))}><ZoomIcon plus /></button>
-        <button className="control-button center-button" type="button" onClick={onCenter}><TargetIcon /> Centrar</button>
-      </div>
-    </section>
-
     <section className="sidebar-section" aria-labelledby="filters-title">
       <h2 id="filters-title">Filtros del día</h2>
       <div className="gender-title">Género</div>
@@ -301,8 +275,7 @@ export default function Sidebar({
       </div>
 
       <div className="actions">
-        <button className="action-button" type="button" onClick={onReset}><ResetIcon /> Limpiar filtros</button>
-        <button className="action-button action-primary" type="button" onClick={onCenter}><TargetIcon /> Centrar Guadalajara</button>
+        <button className="action-button" type="button" onClick={onReset}><ResetIcon /> Restablecer género</button>
       </div>
     </section>
 

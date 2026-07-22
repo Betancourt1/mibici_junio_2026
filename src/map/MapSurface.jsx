@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { Crosshair, Minus, Plus } from '@phosphor-icons/react'
 import { COLORS, MAX_ZOOM, MIN_ZOOM } from '../config.js'
 import { pointAlong, project, TILE_SIZE, unproject } from './mercator.js'
 
@@ -45,6 +46,7 @@ const MapSurface = forwardRef(function MapSurface({
   onCenterChange,
   zoom,
   onZoomChange,
+  onCenter,
   currentTime,
   riderSymbol,
   theme,
@@ -355,6 +357,24 @@ const MapSurface = forwardRef(function MapSurface({
     {statusMessage
       ? <div className="map-empty">{statusMessage}</div>
       : !trips.length && <div className="map-empty">Ninguna trayectoria coincide con los filtros actuales.</div>}
+    <div
+      className="map-navigation"
+      role="group"
+      aria-label={`Controles del mapa. Nivel ${zoom}`}
+      onPointerDown={(event) => event.stopPropagation()}
+    >
+      <button className="map-recenter" type="button" aria-label="Centrar mapa en Guadalajara" onClick={onCenter}>
+        <Crosshair size={31} weight="bold" aria-hidden="true" />
+      </button>
+      <div className="map-zoom-stack">
+        <button type="button" aria-label="Acercar mapa" disabled={zoom >= MAX_ZOOM} onClick={() => onZoomChange((current) => Math.min(MAX_ZOOM, current + 1))}>
+          <Plus size={31} weight="bold" aria-hidden="true" />
+        </button>
+        <button type="button" aria-label="Alejar mapa" disabled={zoom <= MIN_ZOOM} onClick={() => onZoomChange((current) => Math.max(MIN_ZOOM, current - 1))}>
+          <Minus size={31} weight="bold" aria-hidden="true" />
+        </button>
+      </div>
+    </div>
     <a className="map-attribution" href="https://carto.com/attributions" target="_blank" rel="noreferrer">
       © OpenStreetMap © CARTO
     </a>
