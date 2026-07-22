@@ -101,7 +101,7 @@ function formatClock(seconds) {
 }
 
 function GenderButton({ code, active, onClick }) {
-  const labels = { F: 'Mujer', M: 'Hombre', NULL: 'Sin dato' }
+  const labels = { F: 'Mujer', M: 'Hombre' }
   return <button className="gender-button" type="button" aria-pressed={active} onClick={onClick}>
     <span className="swatch" style={{ '--swatch': COLORS[code] }} />
     {labels[code]}
@@ -146,8 +146,6 @@ export default function Sidebar({
   days,
   selectedDate,
   onDateChange,
-  filters,
-  setFilters,
   genders,
   setGenders,
   filteredCount,
@@ -172,11 +170,6 @@ export default function Sidebar({
   const [collapsed, setCollapsed] = useState(
     () => globalThis.matchMedia?.('(max-width: 760px)').matches ?? false,
   )
-  const allGenders = genders.length === GENDERS.length
-  const updateFilter = (field) => (event) => {
-    setFilters((current) => ({ ...current, [field]: event.target.value }))
-  }
-
   function toggleGender(code) {
     setGenders((current) => current.includes(code)
       ? current.filter((value) => value !== code)
@@ -304,20 +297,7 @@ export default function Sidebar({
       <h2 id="filters-title">Filtros del día</h2>
       <div className="gender-title">Género</div>
       <div className="gender-grid">
-        <button className="gender-button" type="button" aria-pressed={allGenders} onClick={() => setGenders(allGenders ? [] : [...GENDERS])}>
-          <span className="swatch-all" aria-hidden="true">
-            <i style={{ '--swatch': COLORS.F }} />
-            <i style={{ '--swatch': COLORS.M }} />
-            <i style={{ '--swatch': COLORS.NULL }} />
-          </span>
-          Todos
-        </button>
         {GENDERS.map((code) => <GenderButton key={code} code={code} active={genders.includes(code)} onClick={() => toggleGender(code)} />)}
-      </div>
-
-      <div className="year-grid">
-        <label>Nacimiento desde<input className="input" type="number" value={filters.birthFrom} onChange={updateFilter('birthFrom')} placeholder="Ej. 1980" /></label>
-        <label>hasta<input className="input" type="number" value={filters.birthTo} onChange={updateFilter('birthTo')} placeholder="Ej. 2005" /></label>
       </div>
 
       <div className="actions">

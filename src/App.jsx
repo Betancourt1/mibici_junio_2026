@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Sidebar from './components/Sidebar.jsx'
 import {
   DEFAULT_CENTER,
-  DEFAULT_FILTERS,
   GENDERS,
   PLAYBACK_SECONDS,
 } from './config.js'
@@ -66,7 +65,6 @@ export default function App() {
   const reduceMotion = usePrefersReducedMotion()
   const rendererRef = useRef(null)
   const timeRef = useRef(initialTime)
-  const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [genders, setGenders] = useState([...GENDERS])
   const [center, setCenter] = useState(DEFAULT_CENTER)
   const [zoom, setZoom] = useState(13)
@@ -130,17 +128,10 @@ export default function App() {
     return () => controller.abort()
   }, [initialSelection.date, initialTime, selectedDate])
 
-  const filteredTrips = useMemo(() => {
-    const birthFrom = filters.birthFrom === '' ? null : Number(filters.birthFrom)
-    const birthTo = filters.birthTo === '' ? null : Number(filters.birthTo)
-
-    return trips.filter((trip) => {
-      if (!genders.includes(trip.gender)) return false
-      if (birthFrom !== null && (trip.birth === null || trip.birth < birthFrom)) return false
-      if (birthTo !== null && (trip.birth === null || trip.birth > birthTo)) return false
-      return true
-    })
-  }, [filters, genders, trips])
+  const filteredTrips = useMemo(
+    () => trips.filter((trip) => genders.includes(trip.gender)),
+    [genders, trips],
+  )
 
   const activeCount = useMemo(
     () => filteredTrips.filter((trip) => currentTime >= trip.start && currentTime <= trip.start + trip.duration).length,
@@ -197,7 +188,6 @@ export default function App() {
   }, [filteredTrips.length, loading, setCurrentTime])
 
   function resetFilters() {
-    setFilters(DEFAULT_FILTERS)
     setGenders([...GENDERS])
   }
 
@@ -218,8 +208,6 @@ export default function App() {
       days={MONTH_MANIFEST.days}
       selectedDate={selectedDate}
       onDateChange={setSelectedDate}
-      filters={filters}
-      setFilters={setFilters}
       genders={genders}
       setGenders={setGenders}
       filteredCount={filteredTrips.length}

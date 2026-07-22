@@ -451,27 +451,6 @@ select:focus-visible,
   font-weight: 700;
 }
 
-.year-grid label {
-  color: #c7d1d6;
-  font-size: 12px;
-}
-
-.input {
-  width: 100%;
-  min-width: 0;
-  height: 35px;
-  border: 1px solid #4a5963;
-  border-radius: 5px;
-  background: #0e161c;
-  color: var(--text);
-  padding: 0 10px;
-  font-size: 12px;
-}
-
-.input::placeholder {
-  color: #77858e;
-}
-
 .gender-title {
   margin: 12px 0 6px;
   color: #c7d1d6;
@@ -504,31 +483,6 @@ select:focus-visible,
   border-radius: 3px;
   background: var(--swatch);
   box-shadow: 0 0 7px color-mix(in srgb, var(--swatch), transparent 35%);
-}
-
-.swatch-all {
-  display: flex;
-  gap: 2px;
-}
-
-.swatch-all i {
-  display: block;
-  width: 4px;
-  height: 13px;
-  border-radius: 1px;
-  background: var(--swatch);
-}
-
-.year-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.year-grid label {
-  display: grid;
-  gap: 4px;
 }
 
 .actions {
@@ -737,8 +691,7 @@ select:focus-visible,
 
 .app-shell[data-theme="light"] .panel-toggle,
 .app-shell[data-theme="light"] .theme-toggle,
-.app-shell[data-theme="light"] .select,
-.app-shell[data-theme="light"] .input {
+.app-shell[data-theme="light"] .select {
   border-color: #a7b5bc;
   background: #fff;
   color: var(--text);
@@ -751,7 +704,6 @@ select:focus-visible,
 .app-shell[data-theme="light"] .time-labels,
 .app-shell[data-theme="light"] .section-label,
 .app-shell[data-theme="light"] .sidebar-section h2,
-.app-shell[data-theme="light"] .year-grid label,
 .app-shell[data-theme="light"] .gender-title,
 .app-shell[data-theme="light"] .source,
 .app-shell[data-theme="light"] .source-line svg {
