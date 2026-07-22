@@ -4,7 +4,7 @@
 
 - Source: `codex-clipboard-d532e3bc-0aab-48d4-9a70-e485fb0c24db.png` at 3420 × 2214.
 - Implementation: `/tmp/mibici-zoom-desktop.png` at a 1280 × 720 desktop viewport.
-- Responsive check: `/tmp/mibici-zoom-mobile.png` at a 390 × 844 phone viewport.
+- Responsive check: `/tmp/mibici-pinch-phone.png` at a 390 × 844 phone viewport.
 - Focused side-by-side comparison: `/tmp/mibici-controls-comparison.png`.
 - State: dark map, sidebar open on desktop, sidebar collapsed on phone, zoom level 13.
 
@@ -26,6 +26,10 @@ The supplied screenshot is a component reference from a different map product, s
 - Exactly two gender choices are rendered: Mujer and Hombre.
 - No birth-year inputs are present.
 - Zoom-in changes the accessible level from 13 to 14; recenter returns it to 13.
+- A two-pointer spread gesture changes the accessible zoom level from 13 to 14 while keeping the gesture midpoint anchored.
+- One-pointer movement still pans the map after the multitouch state is released.
+- The collapsed phone panel exposes an upward chevron labeled `Expandir controles`; the expanded state exposes a downward chevron labeled `Contraer controles`.
+- Dot and arrow rider symbols use only their data color, without a dark outline or backing silhouette.
 - Rider hover details include user ID, approximate age, origin, and destination.
 - All three map buttons render at 42 × 42 px on a 390 px-wide phone viewport and maintain a 14 px gap above the collapsed panel.
 - Browser console: no warnings or errors.
@@ -35,6 +39,6 @@ The supplied screenshot is a component reference from a different map product, s
 - P0: none.
 - P1: none.
 - P2: none.
-- P3: none.
+- P3: the in-app browser cannot inject native multitouch input, so the pointer-state path was automated with synthetic two-pointer events; a physical-phone smoke test remains advisable.
 
 Final result: passed
