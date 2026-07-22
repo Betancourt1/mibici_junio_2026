@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { COLORS, GENDERS, MAX_ZOOM, MIN_ZOOM, PLAYBACK_SECONDS } from '../config.js'
 
 const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
@@ -169,7 +169,9 @@ export default function Sidebar({
   onReset,
   loading,
 }) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(
+    () => globalThis.matchMedia?.('(max-width: 760px)').matches ?? false,
+  )
   const allGenders = genders.length === GENDERS.length
   const updateFilter = (field) => (event) => {
     setFilters((current) => ({ ...current, [field]: event.target.value }))
@@ -180,6 +182,14 @@ export default function Sidebar({
       ? current.filter((value) => value !== code)
       : GENDERS.filter((value) => current.includes(value) || value === code))
   }
+
+  useEffect(() => {
+    const phoneViewport = globalThis.matchMedia?.('(max-width: 760px)')
+    if (!phoneViewport) return undefined
+    const adaptPanel = (event) => setCollapsed(event.matches)
+    phoneViewport.addEventListener('change', adaptPanel)
+    return () => phoneViewport.removeEventListener('change', adaptPanel)
+  }, [])
 
   return <aside className="sidebar" data-collapsed={collapsed} aria-label="Controles de la simulación">
     <header className="brand">

@@ -81,6 +81,11 @@ export default function App() {
   const [loadError, setLoadError] = useState('')
   const stations = MONTH_MANIFEST.stations
 
+  useEffect(() => {
+    const themeColor = document.querySelector('meta[name="theme-color"]')
+    if (themeColor) themeColor.content = theme === 'light' ? '#edf2f4' : '#080d11'
+  }, [theme])
+
   const stationById = useMemo(
     () => new Map(stations.map((station) => [station.id, station])),
     [stations],
