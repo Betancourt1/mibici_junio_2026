@@ -63,6 +63,7 @@ const MapSurface = forwardRef(function MapSurface({
   onZoomChange,
   currentTime,
   riderSymbol,
+  theme,
   statusMessage,
 }, ref) {
   const containerRef = useRef(null)
@@ -119,7 +120,7 @@ const MapSurface = forwardRef(function MapSurface({
         const wrappedX = (x % scale + scale) % scale
         result.push({
           key: `${zoom}/${x}/${y}`,
-          src: `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${wrappedX}/${y}.png`,
+          src: `https://a.basemaps.cartocdn.com/${theme === 'light' ? 'light_all' : 'dark_all'}/${zoom}/${wrappedX}/${y}.png`,
           left: x * TILE_SIZE - worldX + size.width / 2,
           top: y * TILE_SIZE - worldY + size.height / 2,
         })
@@ -127,7 +128,7 @@ const MapSurface = forwardRef(function MapSurface({
     }
 
     return result
-  }, [centerPoint.x, centerPoint.y, size.height, size.width, zoom])
+  }, [centerPoint.x, centerPoint.y, size.height, size.width, theme, zoom])
 
   const drawStations = useCallback(() => {
     const canvas = stationCanvasRef.current
@@ -157,12 +158,12 @@ const MapSurface = forwardRef(function MapSurface({
 
       context.beginPath()
       context.arc(x, y, view.zoom >= 16 ? 3.5 : 2.5, 0, Math.PI * 2)
-      context.fillStyle = '#e9f3f5'
+      context.fillStyle = theme === 'light' ? '#172027' : '#e9f3f5'
       context.fill()
-      context.strokeStyle = '#071014'
+      context.strokeStyle = theme === 'light' ? '#ffffff' : '#071014'
       context.stroke()
     }
-  }, [stationById, trips])
+  }, [stationById, theme, trips])
 
   const drawBikes = useCallback((time) => {
     const canvas = bikeCanvasRef.current
@@ -232,7 +233,8 @@ const MapSurface = forwardRef(function MapSurface({
     data-dragging={dragging}
     role="application"
     tabIndex="0"
-    aria-label="Mapa oscuro interactivo de Guadalajara. Arrastra para mover y usa la rueda o los controles para acercar y alejar."
+    aria-label={`Mapa ${theme === 'light' ? 'claro' : 'oscuro'} interactivo de Guadalajara. Arrastra para mover y usa la rueda o los controles para acercar y alejar.`}
+    data-theme={theme}
     onPointerDown={handlePointerDown}
     onPointerMove={handlePointerMove}
     onPointerUp={handlePointerUp}

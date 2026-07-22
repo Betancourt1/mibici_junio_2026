@@ -24,6 +24,17 @@ function PanelToggleIcon({ collapsed }) {
   </svg>
 }
 
+function ThemeIcon({ theme }) {
+  return <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    {theme === 'dark'
+      ? <>
+        <circle cx="10" cy="10" r="3.2" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.3 4.3l1.4 1.4m8.6 8.6 1.4 1.4m0-11.4-1.4 1.4m-8.6 8.6-1.4 1.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </>
+      : <path d="M15.8 12.6A6.8 6.8 0 0 1 7.4 4.2a6.8 6.8 0 1 0 8.4 8.4Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />}
+  </svg>
+}
+
 function PlayIcon({ playing }) {
   return <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
     {playing
@@ -116,6 +127,8 @@ export default function Sidebar({
   setSpeed,
   riderSymbol,
   setRiderSymbol,
+  theme,
+  setTheme,
   zoom,
   setZoom,
   onCenter,
@@ -138,6 +151,15 @@ export default function Sidebar({
     <header className="brand">
       <BikeIcon />
       <h1>Bicicletas GDL</h1>
+      <button
+        className="theme-toggle"
+        type="button"
+        aria-label={theme === 'dark' ? 'Usar tema claro' : 'Usar tema oscuro'}
+        title={theme === 'dark' ? 'Tema claro' : 'Tema oscuro'}
+        onClick={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}
+      >
+        <ThemeIcon theme={theme} />
+      </button>
       <button
         className="panel-toggle"
         type="button"

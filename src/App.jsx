@@ -51,6 +51,7 @@ export default function App() {
   const [zoom, setZoom] = useState(13)
   const [speed, setSpeed] = useState(300)
   const [riderSymbol, setRiderSymbol] = useState('chevrons')
+  const [theme, setTheme] = useState('dark')
   const [playing, setPlaying] = useState(false)
   const [currentTime, setCurrentTimeState] = useState(initialTime)
   const [selectedDate, setSelectedDate] = useState(initialSelection.date)
@@ -180,7 +181,7 @@ export default function App() {
       ? loadError
       : ''
 
-  return <div className="app-shell">
+  return <div className="app-shell" data-theme={theme}>
     <Sidebar
       summary={MONTH_MANIFEST.summary}
       days={MONTH_MANIFEST.days}
@@ -200,6 +201,8 @@ export default function App() {
       setSpeed={setSpeed}
       riderSymbol={riderSymbol}
       setRiderSymbol={setRiderSymbol}
+      theme={theme}
+      setTheme={setTheme}
       zoom={zoom}
       setZoom={setZoom}
       onCenter={centerGuadalajara}
@@ -216,6 +219,7 @@ export default function App() {
       onZoomChange={setZoom}
       currentTime={currentTime}
       riderSymbol={riderSymbol}
+      theme={theme}
       statusMessage={mapMessage}
     />
   </div>
