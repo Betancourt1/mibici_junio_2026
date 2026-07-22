@@ -10,6 +10,9 @@ import { MONTH_MANIFEST } from './data/manifest.js'
 import MapSurface from './map/MapSurface.jsx'
 import { prepareTrip } from './map/mercator.js'
 
+const ACTIVITY_BIN_SECONDS = 15 * 60
+const ACTIVITY_BIN_COUNT = PLAYBACK_SECONDS / ACTIVITY_BIN_SECONDS
+
 function unpackTrips(data) {
   const hourStart = data.hour * 3600
   return data.trips.map((row) => prepareTrip({
@@ -37,6 +40,24 @@ function usePrefersReducedMotion() {
   }, [])
 
   return reduced
+}
+
+function countActiveTripsByInterval(trips) {
+  const changes = new Array(ACTIVITY_BIN_COUNT + 1).fill(0)
+
+  for (const trip of trips) {
+    const firstBin = Math.max(0, Math.ceil(trip.start / ACTIVITY_BIN_SECONDS))
+    const lastBin = Math.min(ACTIVITY_BIN_COUNT - 1, Math.floor((trip.start + trip.duration) / ACTIVITY_BIN_SECONDS))
+    if (firstBin > lastBin) continue
+    changes[firstBin] += 1
+    changes[lastBin + 1] -= 1
+  }
+
+  let active = 0
+  return changes.slice(0, ACTIVITY_BIN_COUNT).map((change) => {
+    active += change
+    return active
+  })
 }
 
 export default function App() {
@@ -121,6 +142,11 @@ export default function App() {
     [currentTime, filteredTrips],
   )
 
+  const activityBins = useMemo(
+    () => countActiveTripsByInterval(filteredTrips),
+    [filteredTrips],
+  )
+
   useEffect(() => {
     if (!playing) return undefined
 
@@ -193,6 +219,7 @@ export default function App() {
       setGenders={setGenders}
       filteredCount={filteredTrips.length}
       activeCount={activeCount}
+      activityBins={activityBins}
       currentTime={currentTime}
       setCurrentTime={setCurrentTime}
       playing={playing}

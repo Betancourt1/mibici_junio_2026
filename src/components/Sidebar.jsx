@@ -108,6 +108,39 @@ function GenderButton({ code, active, onClick }) {
   </button>
 }
 
+function TravelDistribution({ bins, currentTime, activeCount }) {
+  const max = Math.max(1, ...bins)
+  const barWidth = 100 / bins.length
+  const currentBin = Math.min(bins.length - 1, Math.floor(currentTime / PLAYBACK_SECONDS * bins.length))
+  const currentX = currentTime / PLAYBACK_SECONDS * 100
+
+  return <div className="travel-distribution">
+    <div className="distribution-label">
+      <span>Viajes activos durante el día</span>
+      <strong>{activeCount.toLocaleString('es-MX')} ahora</strong>
+    </div>
+    <svg
+      viewBox="0 0 100 34"
+      preserveAspectRatio="none"
+      role="img"
+      aria-label={`Distribución de viajes activos en intervalos de 15 minutos. Máximo ${max.toLocaleString('es-MX')}; ${activeCount.toLocaleString('es-MX')} en la hora actual.`}
+    >
+      {bins.map((count, index) => {
+        const height = Math.max(1, count / max * 30)
+        return <rect
+          key={index}
+          className={index === currentBin ? 'activity-bar activity-bar-current' : 'activity-bar'}
+          x={index * barWidth}
+          y={34 - height}
+          width={Math.max(0.45, barWidth * 0.72)}
+          height={height}
+        />
+      })}
+      <line className="current-time-marker" x1={currentX} x2={currentX} y1="0" y2="34" />
+    </svg>
+  </div>
+}
+
 export default function Sidebar({
   summary,
   days,
@@ -119,6 +152,7 @@ export default function Sidebar({
   setGenders,
   filteredCount,
   activeCount,
+  activityBins,
   currentTime,
   setCurrentTime,
   playing,
@@ -209,6 +243,7 @@ export default function Sidebar({
     </div>
 
     <div className="timeline">
+      <TravelDistribution bins={activityBins} currentTime={currentTime} activeCount={activeCount} />
       <div className="time-labels">
         <span>00:00:00</span>
         <span>24:00:00</span>
