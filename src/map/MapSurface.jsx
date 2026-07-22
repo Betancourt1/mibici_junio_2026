@@ -33,34 +33,41 @@ function drawRecentTrail(context, trip, time, view, scale, color) {
   const startProgress = (trailStart - trip.start) / trip.duration
   const endProgress = (time - trip.start) / trip.duration
   const segmentCount = Math.max(3, Math.min(14, Math.ceil(elapsed / 30)))
-  let previous = pointAlong(trip, startProgress)
+  const points = []
 
-  context.save()
-  context.strokeStyle = color
-  context.lineCap = 'round'
-
-  for (let index = 1; index <= segmentCount; index += 1) {
+  for (let index = 0; index <= segmentCount; index += 1) {
     const ratio = index / segmentCount
-    const fade = ratio * ratio
-    const next = pointAlong(trip, startProgress + (endProgress - startProgress) * ratio)
-    context.beginPath()
-    context.moveTo(
-      (previous.x - view.centerPoint.x) * scale + view.size.width / 2,
-      (previous.y - view.centerPoint.y) * scale + view.size.height / 2,
-    )
-    context.lineTo(
-      (next.x - view.centerPoint.x) * scale + view.size.width / 2,
-      (next.y - view.centerPoint.y) * scale + view.size.height / 2,
-    )
-    context.globalAlpha = fade * .035
-    context.lineWidth = 10 + fade * 2
-    context.stroke()
-    context.globalAlpha = fade * .05
-    context.lineWidth = 5 + fade * 2
-    context.stroke()
-    previous = next
+    const point = pointAlong(trip, startProgress + (endProgress - startProgress) * ratio)
+    points.push({
+      x: (point.x - view.centerPoint.x) * scale + view.size.width / 2,
+      y: (point.y - view.centerPoint.y) * scale + view.size.height / 2,
+    })
   }
 
+  const start = points[0]
+  const end = points.at(-1)
+  const gradient = context.createLinearGradient(start.x, start.y, end.x, end.y)
+  gradient.addColorStop(0, `${color}00`)
+  gradient.addColorStop(.45, `${color}55`)
+  gradient.addColorStop(1, color)
+
+  context.save()
+  context.strokeStyle = gradient
+  context.lineCap = 'round'
+  context.lineJoin = 'round'
+  context.beginPath()
+  context.moveTo(start.x, start.y)
+
+  for (let index = 1; index < points.length; index += 1) {
+    context.lineTo(points[index].x, points[index].y)
+  }
+
+  context.globalAlpha = .035
+  context.lineWidth = 12
+  context.stroke()
+  context.globalAlpha = .05
+  context.lineWidth = 7
+  context.stroke()
   context.restore()
 }
 
