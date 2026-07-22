@@ -122,7 +122,7 @@ input[type="range"] {
 
 .brand h1 {
   margin: 0;
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.04em;
   white-space: nowrap;
@@ -131,7 +131,7 @@ input[type="range"] {
 .brand-controls {
   display: flex;
   flex: 0 0 auto;
-  gap: 4px;
+  gap: 8px;
   margin-left: auto;
 }
 
@@ -364,7 +364,7 @@ input[type="range"] {
 }
 
 .control-button[aria-pressed="true"] {
-  background: rgb(255 212 0 / 10%);
+  background: transparent;
   color: var(--yellow);
   font-weight: 800;
 }
@@ -387,7 +387,7 @@ input[type="range"] {
 
 .symbol-button[aria-pressed="true"] {
   color: var(--text);
-  background: rgb(255 255 255 / 6%);
+  background: transparent;
   box-shadow: none;
 }
 
@@ -921,7 +921,7 @@ select:focus-visible,
 }
 
 .app-shell[data-theme="light"] .control-button[aria-pressed="true"] {
-  background: rgb(154 104 0 / 10%);
+  background: transparent;
   color: var(--yellow);
 }
 
