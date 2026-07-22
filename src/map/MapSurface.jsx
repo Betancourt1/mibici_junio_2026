@@ -23,34 +23,18 @@ function drawRiderSymbol(context, symbol, color) {
     return
   }
 
-  if (symbol === 'arrow') {
-    for (const [fill, scale] of [['rgba(3, 8, 12, .96)', 1.35], [color, 1]]) {
-      context.save()
-      context.scale(scale, scale)
-      context.beginPath()
-      context.moveTo(7, 0)
-      context.lineTo(-5, -5.5)
-      context.lineTo(-2.3, 0)
-      context.lineTo(-5, 5.5)
-      context.closePath()
-      context.fillStyle = fill
-      context.fill()
-      context.restore()
-    }
-    return
-  }
-
-  for (const [stroke, width] of [['rgba(3, 8, 12, .96)', 5], [color, 2.5]]) {
-    context.strokeStyle = stroke
-    context.lineWidth = width
-    for (let index = 0; index < 4; index += 1) {
-      const offset = -index * 5.2
-      context.beginPath()
-      context.moveTo(offset - 4.5, -4.2)
-      context.lineTo(offset, 0)
-      context.lineTo(offset - 4.5, 4.2)
-      context.stroke()
-    }
+  for (const [fill, scale] of [['rgba(3, 8, 12, .96)', 1.35], [color, 1]]) {
+    context.save()
+    context.scale(scale, scale)
+    context.beginPath()
+    context.moveTo(7, 0)
+    context.lineTo(-5, -5.5)
+    context.lineTo(-2.3, 0)
+    context.lineTo(-5, 5.5)
+    context.closePath()
+    context.fillStyle = fill
+    context.fill()
+    context.restore()
   }
 }
 

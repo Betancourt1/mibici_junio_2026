@@ -71,7 +71,7 @@ export default function App() {
   const [center, setCenter] = useState(DEFAULT_CENTER)
   const [zoom, setZoom] = useState(13)
   const [speed, setSpeed] = useState(300)
-  const [riderSymbol, setRiderSymbol] = useState('chevrons')
+  const [riderSymbol, setRiderSymbol] = useState('arrow')
   const [theme, setTheme] = useState('dark')
   const [playing, setPlaying] = useState(false)
   const [currentTime, setCurrentTimeState] = useState(initialTime)
