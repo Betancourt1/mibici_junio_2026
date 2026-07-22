@@ -1,92 +1,145 @@
 # Bicicletas GDL
 
-Aplicación React que anima los viajes de MiBici registrados durante todo junio de 2026. El selector permite elegir cualquiera de los 30 días y la línea de tiempo recorre directamente sus 24 horas. El mapa usa un fondo oscuro de CARTO y mantiene las estaciones y bicicletas en la misma proyección Web Mercator.
+Visualización geoespacial de los viajes registrados por el sistema MiBici durante junio de 2026. La aplicación reproduce sobre un mapa oscuro las trayectorias inferidas de cada día, conserva la orientación del desplazamiento y permite explorar la actividad a escala de calle.
 
-Las líneas de ruta no se dibujan. Cada bicicleta se representa con cuatro chevrones orientados según el segmento que está recorriendo y se colorea por género.
+## Descripción
+
+El proyecto transforma los registros abiertos de MiBici en una simulación cartográfica interactiva. Cada viaje se representa como una bicicleta formada por cuatro chevrones, orientada según la dirección instantánea del recorrido y coloreada de acuerdo con el género registrado.
+
+La interfaz carga un día completo y reproduce sus 24 horas sobre una línea de tiempo continua. El panel de control flota sobre el mapa, puede ocultarse y concentra la selección de fecha, velocidad, zoom y filtros demográficos.
+
+## Funcionalidades
+
+- Selección de cualquiera de los 30 días de junio de 2026.
+- Reproducción continua de las 24 horas del día seleccionado.
+- Velocidades de simulación de `1×`, `60×`, `300×` y `1800×`.
+- Navegación del mapa mediante desplazamiento y zoom entre los niveles 12 y 19.
+- Representación direccional de bicicletas sin dibujar líneas de ruta.
+- Codificación por género: mujer, hombre y registro sin dato.
+- Filtros por género y rango de año de nacimiento.
+- Panel de controles flotante, adaptable y plegable.
+- Carga bajo demanda de los archivos horarios correspondientes al día seleccionado.
+
+## Cobertura de los datos
+
+| Métrica | Valor |
+| --- | ---: |
+| Periodo | Junio de 2026 |
+| Días disponibles | 30 |
+| Viajes en el archivo fuente | 355,303 |
+| Viajes con coordenadas | 323,648 |
+| Viajes sin coordenadas | 31,655 |
+| Pares origen-destino resueltos | 43,706 |
+| Archivos horarios procesados | 619 |
+
+Los viajes sin coordenadas se conservan en el resumen estadístico, pero no forman parte de la animación.
+
+## Metodología de las trayectorias
+
+Los datos originales contienen la estación de origen y la estación de destino, no el recorrido GPS. La geometría intermedia se infiere sobre la red vial y se reutiliza para los viajes que comparten el mismo par origen-destino.
+
+La posición de cada bicicleta se obtiene interpolando su avance sobre esa geometría de acuerdo con la hora de inicio y la duración registrada. La orientación se calcula a partir del segmento recorrido en cada instante. Las trayectorias son aproximaciones visuales y no representan el itinerario real seguido por cada usuario.
+
+## Tecnologías
+
+- React 19
+- Vite 8
+- Canvas 2D
+- Proyección Web Mercator
+- Teselas oscuras de CARTO basadas en OpenStreetMap
+- Cloudflare Workers Static Assets
+
+## Arquitectura
+
+```text
+src/
+├── App.jsx                  Estado, carga diaria, filtros y reloj de animación
+├── components/
+│   └── Sidebar.jsx          Panel flotante y controles
+├── data/
+│   └── manifest.js          Resumen, estaciones y disponibilidad mensual
+├── map/
+│   ├── MapSurface.jsx       Teselas, interacción y renderizado en Canvas
+│   └── mercator.js          Proyección e interpolación de trayectorias
+└── styles.css               Tema oscuro y diseño adaptable
+
+public/data/hours/           Datos horarios cargados bajo demanda
+wrangler.jsonc               Configuración de despliegue en Cloudflare
+```
+
+El mapa base y la animación comparten la misma proyección y transformación de cámara. Los datos del día seleccionado se descargan en archivos horarios y se preparan en memoria antes del renderizado.
 
 ## Requisitos
 
-- Node.js 22 recomendado.
-- npm.
-- Conexión a internet para cargar las teselas del mapa de CARTO.
+- Node.js 22
+- npm
+- Conexión a internet para cargar las teselas de CARTO
 
-Los datos procesados ya están incluidos en `public/data/hours/`; no se necesitan los CSV originales para ejecutar o desplegar la aplicación. La interfaz descarga sólo los archivos horarios del día seleccionado, no los 323,648 viajes al abrir la página.
-
-## Verlo en local
+## Instalación y desarrollo
 
 ```bash
-cd /home/betancourt/GitHub/bicis
-npm install
+git clone git@github.com:Betancourt1/mibici_junio_2026.git
+cd mibici_junio_2026
+npm ci
 npm run dev
 ```
 
-Abre <http://localhost:5173>.
+El servidor de desarrollo queda disponible en <http://localhost:5173> y escucha en todas las interfaces de red.
 
-Vite escucha en todas las interfaces para que también puedas abrirlo desde otro equipo de la misma red usando la IP de esta computadora.
+## Scripts
 
-## Probar el build de producción
+| Comando | Descripción |
+| --- | --- |
+| `npm run dev` | Inicia el servidor de desarrollo de Vite. |
+| `npm run build` | Genera el paquete de producción en `dist/`. |
+| `npm run preview` | Sirve localmente el paquete de producción. |
+| `npm run deploy` | Compila y despliega los recursos estáticos con Wrangler. |
+
+## Compilación de producción
 
 ```bash
 npm run build
 npm run preview
 ```
 
-Abre <http://localhost:4173>. El resultado compilado queda en `dist/`.
+La vista previa queda disponible en <http://localhost:4173>.
 
-## Desplegar en Cloudflare
+## Despliegue en Cloudflare
 
-El proyecto está preparado para **Cloudflare Workers Static Assets** mediante `wrangler.jsonc`. Cloudflare sirve el contenido de `dist/` y aplica el fallback de SPA a `index.html`.
+El archivo `wrangler.jsonc` configura `dist/` como un conjunto de recursos estáticos y aplica el fallback de aplicación de página única.
 
-1. Inicia sesión en Cloudflare desde la terminal:
+```bash
+npx wrangler login
+npm run deploy
+```
 
-   ```bash
-   npx wrangler login
-   ```
+Wrangler publica el proyecto como `bicis-gdl` y devuelve una URL bajo `workers.dev`. Los dominios personalizados se administran en **Cloudflare Dashboard → Workers & Pages → bicis-gdl → Settings → Domains & Routes**.
 
-2. Si quieres otro nombre público, cambia `name` en `wrangler.jsonc`.
+Documentación técnica relacionada:
 
-3. Compila y despliega:
-
-   ```bash
-   npm run deploy
-   ```
-
-Wrangler mostrará la URL `*.workers.dev` al terminar. Los despliegues siguientes se hacen con el mismo comando.
-
-Para asociar un dominio propio, entra en **Cloudflare Dashboard → Workers & Pages → bicis-gdl → Settings → Domains & Routes** y agrega el dominio o subdominio.
-
-Documentación oficial:
-
-- [React + Vite en Cloudflare Workers](https://developers.cloudflare.com/workers/framework-guides/web-apps/react/)
-- [Static Assets](https://developers.cloudflare.com/workers/static-assets/)
-- [Configuración de una SPA](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/)
+- [React y Vite en Cloudflare Workers](https://developers.cloudflare.com/workers/framework-guides/web-apps/react/)
+- [Cloudflare Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/)
+- [Enrutamiento de aplicaciones SPA](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/)
 
 ## Controles
 
-- `Espacio`: reproducir o pausar.
-- Botón del encabezado: ocultar o mostrar el menú flotante.
-- `←` y `→`: retroceder o adelantar 30 segundos.
-- Rueda del ratón: cambiar el zoom.
-- Arrastrar el mapa: mover la vista.
-- Botones `1×`, `60×`, `300×` y `1800×`: cambiar la velocidad.
+| Entrada | Acción |
+| --- | --- |
+| `Espacio` | Reproduce o pausa la simulación. |
+| `←` / `→` | Retrocede o adelanta 30 segundos. |
+| Rueda del ratón | Modifica el nivel de zoom. |
+| Arrastre | Desplaza la vista del mapa. |
+| Botón del encabezado | Oculta o muestra el panel flotante. |
+| `1×`, `60×`, `300×`, `1800×` | Modifica la velocidad de reproducción. |
 
-## Estructura
+## Limitaciones
 
-```text
-src/
-├── App.jsx                 Estado, filtros y reloj de animación
-├── components/Sidebar.jsx Controles fuera del mapa
-├── data/manifest.js       Resumen, estaciones y horas disponibles del mes
-├── map/MapSurface.jsx     Teselas y Canvas de estaciones/bicicletas
-├── map/mercator.js        Proyección e interpolación de trayectorias
-└── styles.css             Tema oscuro y diseño adaptable
-public/data/hours/          619 archivos JSON cargados bajo demanda
-```
+- Las rutas son geometrías inferidas, no trazas GPS.
+- La animación excluye los viajes que no tienen coordenadas de origen o destino.
+- La disponibilidad del mapa base depende del servicio externo de teselas.
+- Los valores de género reproducen la clasificación presente en el conjunto de datos original.
 
-## Fuentes y método
+## Fuente y atribución
 
-- Los campos de viaje y estación provienen de los datos abiertos oficiales de MiBici de junio de 2026.
-- El CSV contiene 355,303 viajes; 323,648 tienen coordenadas en origen y destino y aparecen en la simulación. Los otros 31,655 se conservan en el resumen, pero no se inventa su posición.
-- Las 43,706 combinaciones origen-destino se resolvieron sobre la red vial y se reutilizan entre viajes.
-- La geometría intermedia es inferida sobre la capa vial de CARTO/OpenStreetMap; no representa el GPS real de cada viaje.
-- Mapa © OpenStreetMap © CARTO.
+- Datos de viajes y estaciones: [Datos abiertos de MiBici](https://mibici.net/es/datos-abiertos/).
+- Mapa base: © OpenStreetMap © CARTO.
