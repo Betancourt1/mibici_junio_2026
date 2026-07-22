@@ -39,6 +39,15 @@ function drawRiderSymbol(context, symbol, color) {
   }
 }
 
+function getPinchMetrics(points) {
+  const [first, second] = points
+  return {
+    x: (first.x + second.x) / 2,
+    y: (first.y + second.y) / 2,
+    distance: Math.hypot(second.x - first.x, second.y - first.y),
+  }
+}
+
 const MapSurface = forwardRef(function MapSurface({
   trips,
   stationById,
@@ -56,7 +65,9 @@ const MapSurface = forwardRef(function MapSurface({
   const stationCanvasRef = useRef(null)
   const bikeCanvasRef = useRef(null)
   const activeRidersRef = useRef([])
+  const activePointersRef = useRef(new Map())
   const dragRef = useRef(null)
+  const pinchRef = useRef(null)
   const hoveredTripIdRef = useRef(null)
   const pinnedTooltipRef = useRef(false)
   const lastTooltipUpdateRef = useRef(0)
@@ -216,24 +227,68 @@ const MapSurface = forwardRef(function MapSurface({
     drawBikes(currentTime)
   }, [centerPoint.x, centerPoint.y, currentTime, drawBikes, drawStations, size.height, size.width, zoom])
 
+  function beginPinch() {
+    const bounds = containerRef.current?.getBoundingClientRect()
+    if (!bounds) return
+    const metrics = getPinchMetrics([...activePointersRef.current.values()].slice(0, 2))
+    const view = viewRef.current
+    const scale = 2 ** view.zoom
+    pinchRef.current = {
+      distance: Math.max(1, metrics.distance),
+      zoom: view.zoom,
+      focalPoint: {
+        x: view.centerPoint.x + (metrics.x - bounds.left - view.size.width / 2) / scale,
+        y: view.centerPoint.y + (metrics.y - bounds.top - view.size.height / 2) / scale,
+      },
+    }
+    dragRef.current = null
+    clearRiderDetails()
+  }
+
   function handlePointerDown(event) {
     if (event.button !== 0) return
     event.currentTarget.setPointerCapture(event.pointerId)
-    dragRef.current = {
-      x: event.clientX,
-      y: event.clientY,
-      centerPoint,
-      moved: false,
+    activePointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
+    if (activePointersRef.current.size === 1) {
+      dragRef.current = {
+        pointerId: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+        centerPoint: viewRef.current.centerPoint,
+        moved: false,
+      }
+    } else if (activePointersRef.current.size === 2) {
+      beginPinch()
     }
     setDragging(true)
   }
 
   function handlePointerMove(event) {
+    if (activePointersRef.current.has(event.pointerId)) {
+      activePointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
+    }
+    if (pinchRef.current && activePointersRef.current.size >= 2) {
+      const bounds = containerRef.current?.getBoundingClientRect()
+      if (!bounds) return
+      const metrics = getPinchMetrics([...activePointersRef.current.values()].slice(0, 2))
+      const nextZoom = Math.max(MIN_ZOOM, Math.min(
+        MAX_ZOOM,
+        Math.round(pinchRef.current.zoom + Math.log2(Math.max(1, metrics.distance) / pinchRef.current.distance)),
+      ))
+      const scale = 2 ** nextZoom
+      onZoomChange(nextZoom)
+      onCenterChange(unproject(
+        pinchRef.current.focalPoint.x - (metrics.x - bounds.left - size.width / 2) / scale,
+        pinchRef.current.focalPoint.y - (metrics.y - bounds.top - size.height / 2) / scale,
+      ))
+      return
+    }
     if (!dragRef.current) {
       if (event.pointerType !== 'touch') showNearestRider(event.clientX, event.clientY, 17, false)
       return
     }
-    const scale = 2 ** zoom
+    if (dragRef.current.pointerId !== event.pointerId) return
+    const scale = 2 ** viewRef.current.zoom
     const dx = event.clientX - dragRef.current.x
     const dy = event.clientY - dragRef.current.y
     if (Math.hypot(dx, dy) > 4) dragRef.current.moved = true
@@ -246,11 +301,36 @@ const MapSurface = forwardRef(function MapSurface({
   }
 
   function handlePointerUp(event) {
-    if (dragRef.current && !dragRef.current.moved) {
+    const wasPinching = Boolean(pinchRef.current)
+    const wasTap = !wasPinching
+      && event.type === 'pointerup'
+      && dragRef.current?.pointerId === event.pointerId
+      && !dragRef.current.moved
+    activePointersRef.current.delete(event.pointerId)
+    if (wasTap) {
       showNearestRider(event.clientX, event.clientY, event.pointerType === 'touch' ? 28 : 17, true)
     }
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    if (wasPinching) {
+      if (activePointersRef.current.size >= 2) {
+        beginPinch()
+      } else {
+        pinchRef.current = null
+        const remaining = [...activePointersRef.current.entries()][0]
+        dragRef.current = remaining
+          ? {
+              pointerId: remaining[0],
+              x: remaining[1].x,
+              y: remaining[1].y,
+              centerPoint: viewRef.current.centerPoint,
+              moved: true,
+            }
+          : null
+        setDragging(Boolean(remaining))
+      }
+      return
     }
     dragRef.current = null
     setDragging(false)
