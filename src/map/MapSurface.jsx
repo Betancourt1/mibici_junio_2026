@@ -12,15 +12,9 @@ import { Crosshair, Minus, Plus } from '@phosphor-icons/react'
 import { COLORS, MAX_ZOOM, MIN_ZOOM } from '../config.js'
 import { pointAlong, project, TILE_SIZE, unproject } from './mercator.js'
 
-function drawRiderSymbol(context, symbol, color) {
-  if (symbol === 'dot') {
-    context.beginPath()
-    context.arc(0, 0, 5, 0, Math.PI * 2)
-    context.fillStyle = color
-    context.fill()
-    return
-  }
+const TRAIL_SECONDS = 5 * 60
 
+function drawRiderArrow(context, color) {
   context.beginPath()
   context.moveTo(7, 0)
   context.lineTo(-5, -5.5)
@@ -29,6 +23,41 @@ function drawRiderSymbol(context, symbol, color) {
   context.closePath()
   context.fillStyle = color
   context.fill()
+}
+
+function drawRecentTrail(context, trip, time, view, scale, color) {
+  const trailStart = Math.max(trip.start, time - TRAIL_SECONDS)
+  const elapsed = time - trailStart
+  if (elapsed <= 0) return
+
+  const startProgress = (trailStart - trip.start) / trip.duration
+  const endProgress = (time - trip.start) / trip.duration
+  const segmentCount = Math.max(3, Math.min(14, Math.ceil(elapsed / 30)))
+  let previous = pointAlong(trip, startProgress)
+
+  context.save()
+  context.strokeStyle = color
+  context.lineCap = 'round'
+
+  for (let index = 1; index <= segmentCount; index += 1) {
+    const ratio = index / segmentCount
+    const next = pointAlong(trip, startProgress + (endProgress - startProgress) * ratio)
+    context.beginPath()
+    context.moveTo(
+      (previous.x - view.centerPoint.x) * scale + view.size.width / 2,
+      (previous.y - view.centerPoint.y) * scale + view.size.height / 2,
+    )
+    context.lineTo(
+      (next.x - view.centerPoint.x) * scale + view.size.width / 2,
+      (next.y - view.centerPoint.y) * scale + view.size.height / 2,
+    )
+    context.globalAlpha = .08 + ratio * .36
+    context.lineWidth = .9 + ratio * 1.05
+    context.stroke()
+    previous = next
+  }
+
+  context.restore()
 }
 
 function getPinchMetrics(points) {
@@ -49,7 +78,6 @@ const MapSurface = forwardRef(function MapSurface({
   onZoomChange,
   onCenter,
   currentTime,
-  riderSymbol,
   theme,
   statusMessage,
 }, ref) {
@@ -197,21 +225,26 @@ const MapSurface = forwardRef(function MapSurface({
       const x = (point.x - view.centerPoint.x) * scale + view.size.width / 2
       const y = (point.y - view.centerPoint.y) * scale + view.size.height / 2
       if (x < -32 || y < -32 || x > view.size.width + 32 || y > view.size.height + 32) continue
-      activeRiders.push({ trip, x, y })
+      activeRiders.push({ trip, point, x, y })
+    }
 
+    for (const rider of activeRiders) {
+      drawRecentTrail(
+        context,
+        rider.trip,
+        time,
+        view,
+        scale,
+        COLORS[rider.trip.gender] ?? COLORS.NULL,
+      )
+    }
+
+    for (const rider of activeRiders) {
       context.save()
-      context.translate(x, y)
-      if (trip.id === hoveredTripIdRef.current) {
-        context.beginPath()
-        context.arc(0, 0, 10, 0, Math.PI * 2)
-        context.fillStyle = theme === 'light' ? 'rgba(255, 255, 255, .84)' : 'rgba(3, 8, 12, .8)'
-        context.fill()
-        context.lineWidth = 2
-        context.strokeStyle = COLORS[trip.gender] ?? COLORS.NULL
-        context.stroke()
-      }
-      context.rotate(point.angle)
-      drawRiderSymbol(context, riderSymbol, COLORS[trip.gender] ?? COLORS.NULL)
+      context.translate(rider.x, rider.y)
+      context.rotate(rider.point.angle)
+      if (rider.trip.id === hoveredTripIdRef.current) context.scale(1.18, 1.18)
+      drawRiderArrow(context, COLORS[rider.trip.gender] ?? COLORS.NULL)
       context.restore()
     }
 
@@ -227,7 +260,7 @@ const MapSurface = forwardRef(function MapSurface({
         setRiderDetails(null)
       }
     }
-  }, [riderSymbol, theme, trips])
+  }, [trips])
 
   useImperativeHandle(ref, () => ({ drawBikes }), [drawBikes])
 
@@ -471,7 +504,7 @@ const MapSurface = forwardRef(function MapSurface({
     </div>}
     {statusMessage
       ? <div className="map-empty">{statusMessage}</div>
-      : !trips.length && <div className="map-empty">Ninguna trayectoria coincide con los filtros actuales.</div>}
+      : !trips.length && <div className="map-empty">No hay trayectorias disponibles para este día.</div>}
     <div
       className="map-navigation"
       role="group"

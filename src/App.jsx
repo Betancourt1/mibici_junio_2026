@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Sidebar from './components/Sidebar.jsx'
-import PlaybackRail from './components/PlaybackRail.jsx'
+import SimulationHud from './components/SimulationHud.jsx'
 import {
   DEFAULT_CENTER,
-  GENDERS,
   PLAYBACK_SECONDS,
 } from './config.js'
 import { MONTH_MANIFEST } from './data/manifest.js'
@@ -66,11 +64,9 @@ export default function App() {
   const reduceMotion = usePrefersReducedMotion()
   const rendererRef = useRef(null)
   const timeRef = useRef(initialTime)
-  const [genders, setGenders] = useState([...GENDERS])
   const [center, setCenter] = useState(DEFAULT_CENTER)
   const [zoom, setZoom] = useState(13)
-  const [speed, setSpeed] = useState(300)
-  const [riderSymbol, setRiderSymbol] = useState('arrow')
+  const [speed, setSpeed] = useState(60)
   const [theme, setTheme] = useState('dark')
   const [playing, setPlaying] = useState(false)
   const [currentTime, setCurrentTimeState] = useState(initialTime)
@@ -129,19 +125,22 @@ export default function App() {
     return () => controller.abort()
   }, [initialSelection.date, initialTime, selectedDate])
 
-  const filteredTrips = useMemo(
-    () => trips.filter((trip) => genders.includes(trip.gender)),
-    [genders, trips],
-  )
-
   const activeCount = useMemo(
-    () => filteredTrips.filter((trip) => currentTime >= trip.start && currentTime <= trip.start + trip.duration).length,
-    [currentTime, filteredTrips],
+    () => trips.filter((trip) => currentTime >= trip.start && currentTime <= trip.start + trip.duration).length,
+    [currentTime, trips],
   )
 
   const activityBins = useMemo(
-    () => countActiveTripsByInterval(filteredTrips),
-    [filteredTrips],
+    () => countActiveTripsByInterval(trips),
+    [trips],
+  )
+
+  const activityByGender = useMemo(
+    () => ({
+      F: countActiveTripsByInterval(trips.filter((trip) => trip.gender === 'F')),
+      M: countActiveTripsByInterval(trips.filter((trip) => trip.gender === 'M')),
+    }),
+    [trips],
   )
 
   useEffect(() => {
@@ -176,7 +175,7 @@ export default function App() {
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(event.target?.tagName)) return
       if (event.code === 'Space') {
         event.preventDefault()
-        if (!loading && filteredTrips.length) setPlaying((value) => !value)
+        if (!loading && trips.length) setPlaying((value) => !value)
       } else if (event.key === 'ArrowLeft') {
         setCurrentTime(timeRef.current - 30)
       } else if (event.key === 'ArrowRight') {
@@ -186,7 +185,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [filteredTrips.length, loading, setCurrentTime])
+  }, [loading, setCurrentTime, trips.length])
 
   function centerGuadalajara() {
     setCenter(DEFAULT_CENTER)
@@ -200,26 +199,27 @@ export default function App() {
       : ''
 
   return <div className="app-shell" data-theme={theme}>
-    <Sidebar
+    <SimulationHud
       days={MONTH_MANIFEST.days}
       selectedDate={selectedDate}
       onDateChange={setSelectedDate}
-      genders={genders}
-      setGenders={setGenders}
-      filteredCount={filteredTrips.length}
+      tripCount={trips.length}
       playing={playing}
       setPlaying={setPlaying}
       speed={speed}
       setSpeed={setSpeed}
-      riderSymbol={riderSymbol}
-      setRiderSymbol={setRiderSymbol}
       theme={theme}
       setTheme={setTheme}
       loading={loading}
+      bins={activityBins}
+      genderBins={activityByGender}
+      currentTime={currentTime}
+      activeCount={activeCount}
+      onTimeChange={setCurrentTime}
     />
     <MapSurface
       ref={rendererRef}
-      trips={filteredTrips}
+      trips={trips}
       stationById={stationById}
       center={center}
       onCenterChange={setCenter}
@@ -227,16 +227,8 @@ export default function App() {
       onZoomChange={setZoom}
       onCenter={centerGuadalajara}
       currentTime={currentTime}
-      riderSymbol={riderSymbol}
       theme={theme}
       statusMessage={mapMessage}
-    />
-    <PlaybackRail
-      bins={activityBins}
-      currentTime={currentTime}
-      activeCount={activeCount}
-      onTimeChange={setCurrentTime}
-      disabled={loading}
     />
   </div>
 }
