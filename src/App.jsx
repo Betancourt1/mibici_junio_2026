@@ -50,6 +50,7 @@ export default function App() {
   const [center, setCenter] = useState(DEFAULT_CENTER)
   const [zoom, setZoom] = useState(13)
   const [speed, setSpeed] = useState(300)
+  const [riderSymbol, setRiderSymbol] = useState('chevrons')
   const [playing, setPlaying] = useState(false)
   const [currentTime, setCurrentTimeState] = useState(initialTime)
   const [selectedDate, setSelectedDate] = useState(initialSelection.date)
@@ -197,6 +198,8 @@ export default function App() {
       setPlaying={setPlaying}
       speed={speed}
       setSpeed={setSpeed}
+      riderSymbol={riderSymbol}
+      setRiderSymbol={setRiderSymbol}
       zoom={zoom}
       setZoom={setZoom}
       onCenter={centerGuadalajara}
@@ -212,6 +215,7 @@ export default function App() {
       zoom={zoom}
       onZoomChange={setZoom}
       currentTime={currentTime}
+      riderSymbol={riderSymbol}
       statusMessage={mapMessage}
     />
   </div>

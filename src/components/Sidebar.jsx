@@ -2,6 +2,11 @@ import { useState } from 'react'
 import { COLORS, GENDERS, MAX_ZOOM, MIN_ZOOM, PLAYBACK_SECONDS } from '../config.js'
 
 const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
+const RIDER_SYMBOLS = [
+  { value: 'chevrons', label: 'Chevrones', description: 'Dirección y movimiento' },
+  { value: 'arrow', label: 'Flecha', description: 'Dirección con menos ruido' },
+  { value: 'dot', label: 'Punto', description: 'Densidad y volumen' },
+]
 
 function BikeIcon() {
   return <svg width="44" height="32" viewBox="0 0 48 34" fill="none" aria-hidden="true">
@@ -109,6 +114,8 @@ export default function Sidebar({
   setPlaying,
   speed,
   setSpeed,
+  riderSymbol,
+  setRiderSymbol,
   zoom,
   setZoom,
   onCenter,
@@ -196,6 +203,23 @@ export default function Sidebar({
         onChange={(event) => setCurrentTime(Number(event.target.value))}
       />
     </div>
+
+    <section className="sidebar-section" aria-labelledby="rider-symbol-title">
+      <span id="rider-symbol-title" className="section-label">Símbolo de ciclista</span>
+      <div className="symbol-grid">
+        {RIDER_SYMBOLS.map((symbol) => <button
+          key={symbol.value}
+          className="symbol-button"
+          type="button"
+          aria-pressed={riderSymbol === symbol.value}
+          title={symbol.description}
+          onClick={() => setRiderSymbol(symbol.value)}
+        >
+          <span className={`symbol-preview symbol-preview-${symbol.value}`} aria-hidden="true" />
+          <span>{symbol.label}</span>
+        </button>)}
+      </div>
+    </section>
 
     <section className="sidebar-section" aria-labelledby="map-controls-title">
       <span id="map-controls-title" className="section-label">Zoom del mapa · nivel {zoom}</span>
