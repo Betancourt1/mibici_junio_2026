@@ -109,30 +109,32 @@ export default function Sidebar({
         <h1>Bicicletas GDL</h1>
         <span>MiBici</span>
       </div>
-      <button
-        className="theme-toggle"
-        type="button"
-        aria-label={theme === 'dark' ? 'Usar tema claro' : 'Usar tema oscuro'}
-        title={theme === 'dark' ? 'Tema claro' : 'Tema oscuro'}
-        onClick={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}
-      >
-        <ThemeIcon theme={theme} />
-      </button>
-      <button
-        className="panel-toggle"
-        type="button"
-        aria-label={phoneLayout
-          ? collapsed ? 'Expandir controles' : 'Contraer controles'
-          : collapsed ? 'Mostrar panel' : 'Ocultar panel'}
-        aria-controls="sidebar-content"
-        aria-expanded={!collapsed}
-        onClick={() => setCollapsed((value) => !value)}
-      >
-        <span className="desktop-panel-toggle-icon"><PanelToggleIcon collapsed={collapsed} /></span>
-        {collapsed
-          ? <CaretUp className="phone-panel-toggle-icon" size={22} weight="bold" aria-hidden="true" />
-          : <CaretDown className="phone-panel-toggle-icon" size={22} weight="bold" aria-hidden="true" />}
-      </button>
+      <div className="brand-controls">
+        <button
+          className="theme-toggle"
+          type="button"
+          aria-label={theme === 'dark' ? 'Usar tema claro' : 'Usar tema oscuro'}
+          title={theme === 'dark' ? 'Tema claro' : 'Tema oscuro'}
+          onClick={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}
+        >
+          <ThemeIcon theme={theme} />
+        </button>
+        <button
+          className="panel-toggle"
+          type="button"
+          aria-label={phoneLayout
+            ? collapsed ? 'Expandir controles' : 'Contraer controles'
+            : collapsed ? 'Mostrar panel' : 'Ocultar panel'}
+          aria-controls="sidebar-content"
+          aria-expanded={!collapsed}
+          onClick={() => setCollapsed((value) => !value)}
+        >
+          <span className="desktop-panel-toggle-icon"><PanelToggleIcon collapsed={collapsed} /></span>
+          {collapsed
+            ? <CaretUp className="phone-panel-toggle-icon" size={22} weight="bold" aria-hidden="true" />
+            : <CaretDown className="phone-panel-toggle-icon" size={22} weight="bold" aria-hidden="true" />}
+        </button>
+      </div>
     </header>
 
     <div id="sidebar-content" hidden={collapsed}>
