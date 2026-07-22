@@ -125,6 +125,14 @@ input[type="range"] {
   cursor: pointer;
 }
 
+.desktop-panel-toggle-icon {
+  display: inline-flex;
+}
+
+.phone-panel-toggle-icon {
+  display: none;
+}
+
 .theme-toggle {
   display: grid;
   flex: 0 0 auto;
@@ -787,6 +795,14 @@ select:focus-visible,
 }
 
 @media (max-width: 760px) {
+  .desktop-panel-toggle-icon {
+    display: none;
+  }
+
+  .phone-panel-toggle-icon {
+    display: block;
+  }
+
   .sidebar {
     top: auto;
     right: 0;

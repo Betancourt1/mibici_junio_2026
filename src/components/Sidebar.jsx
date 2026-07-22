@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Circle, NavigationArrow } from '@phosphor-icons/react'
+import { CaretDown, CaretUp, Circle, NavigationArrow } from '@phosphor-icons/react'
 import { COLORS, GENDERS, PLAYBACK_SECONDS } from '../config.js'
 
 const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
@@ -146,6 +146,9 @@ export default function Sidebar({
   const [collapsed, setCollapsed] = useState(
     () => globalThis.matchMedia?.('(max-width: 760px)').matches ?? false,
   )
+  const [phoneLayout, setPhoneLayout] = useState(
+    () => globalThis.matchMedia?.('(max-width: 760px)').matches ?? false,
+  )
   function toggleGender(code) {
     setGenders((current) => current.includes(code)
       ? current.filter((value) => value !== code)
@@ -155,7 +158,10 @@ export default function Sidebar({
   useEffect(() => {
     const phoneViewport = globalThis.matchMedia?.('(max-width: 760px)')
     if (!phoneViewport) return undefined
-    const adaptPanel = (event) => setCollapsed(event.matches)
+    const adaptPanel = (event) => {
+      setPhoneLayout(event.matches)
+      setCollapsed(event.matches)
+    }
     phoneViewport.addEventListener('change', adaptPanel)
     return () => phoneViewport.removeEventListener('change', adaptPanel)
   }, [])
@@ -176,12 +182,17 @@ export default function Sidebar({
       <button
         className="panel-toggle"
         type="button"
-        aria-label={collapsed ? 'Mostrar menú' : 'Ocultar menú'}
+        aria-label={phoneLayout
+          ? collapsed ? 'Expandir controles' : 'Contraer controles'
+          : collapsed ? 'Mostrar panel' : 'Ocultar panel'}
         aria-controls="sidebar-content"
         aria-expanded={!collapsed}
         onClick={() => setCollapsed((value) => !value)}
       >
-        <PanelToggleIcon collapsed={collapsed} />
+        <span className="desktop-panel-toggle-icon"><PanelToggleIcon collapsed={collapsed} /></span>
+        {collapsed
+          ? <CaretUp className="phone-panel-toggle-icon" size={22} weight="bold" aria-hidden="true" />
+          : <CaretDown className="phone-panel-toggle-icon" size={22} weight="bold" aria-hidden="true" />}
       </button>
     </header>
 
