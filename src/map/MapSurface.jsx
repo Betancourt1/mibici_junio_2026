@@ -41,6 +41,7 @@ function drawRecentTrail(context, trip, time, view, scale, color) {
 
   for (let index = 1; index <= segmentCount; index += 1) {
     const ratio = index / segmentCount
+    const fade = ratio * ratio
     const next = pointAlong(trip, startProgress + (endProgress - startProgress) * ratio)
     context.beginPath()
     context.moveTo(
@@ -51,8 +52,11 @@ function drawRecentTrail(context, trip, time, view, scale, color) {
       (next.x - view.centerPoint.x) * scale + view.size.width / 2,
       (next.y - view.centerPoint.y) * scale + view.size.height / 2,
     )
-    context.globalAlpha = .08 + ratio * .36
-    context.lineWidth = .9 + ratio * 1.05
+    context.globalAlpha = fade * .035
+    context.lineWidth = 10 + fade * 2
+    context.stroke()
+    context.globalAlpha = fade * .05
+    context.lineWidth = 5 + fade * 2
     context.stroke()
     previous = next
   }

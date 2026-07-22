@@ -2,48 +2,45 @@
 
 ## Comparison setup
 
-- Source visual truth: `/var/folders/yg/rt8w41_56d30cbn9r6gbggyw0000gn/T/codex-clipboard-3d910502-5b3c-4615-93e4-86a3bc585859.png` and its original generated result `/Users/betancourt/.codex/generated_images/019f879d-6a06-7412-8376-f7989782442b/exec-990b30e1-e0c2-4ffb-b077-eeb7daab7c1d.png` (1536 × 1024 px).
-- Desktop implementation: `/tmp/mibici-selected-desktop-final.png` (1440 × 1024 px; 1440 × 1024 CSS viewport; density 1).
-- Phone implementation, controls closed: `/tmp/mibici-selected-mobile-closed-final.png` (390 × 844 px; 390 × 844 CSS viewport; density 1).
-- Phone implementation, controls open: `/tmp/mibici-selected-mobile-open-final.png` (390 × 844 px; 390 × 844 CSS viewport; density 1).
-- Phone landscape implementation, controls open: `/tmp/mibici-selected-mobile-landscape-open-final.png` (844 × 390 px; 844 × 390 CSS viewport; density 1).
-- Combined comparison evidence: `/tmp/mibici-selected-design-compare.png` (1152 × 1280 px). The source board was normalized to 1152 × 768; the implementation desktop and phone captures were normalized to 720 × 512 and 234 × 506 before being placed in the same comparison input.
-- State: dark theme, 17 June 2026, 18:24:32, arrow-only riders, 60× default speed, both gender series visible as context, and five simulated minutes of trail history.
+- Source visual truth: `/Users/betancourt/.codex/generated_images/019f879d-6a06-7412-8376-f7989782442b/exec-4f1385ac-2dcd-463f-ba22-4e24db46033e.png` (1559 × 1009 px).
+- Desktop implementation, city view: `/tmp/mibici-halo-desktop-final.png` (1440 × 1024 px; 1440 × 1024 CSS viewport; density 1).
+- Desktop implementation, trail detail: `/tmp/mibici-halo-desktop-close.png` (1440 × 1024 px; 1440 × 1024 CSS viewport; density 1; zoom level 16).
+- Phone implementation: `/tmp/mibici-halo-mobile-final.png` (390 × 844 px; 390 × 844 CSS viewport; density 1).
+- Final live-review capture: `/tmp/mibici-halo-handoff.png` (1440 × 1024 px; 1440 × 1024 CSS viewport; density 1; zoom level 16).
+- Full-view comparison evidence: `/tmp/mibici-halo-comparison.png` (1568 × 528 px). Source and implementation were normalized into equal 768 × 512 tiles before comparison.
+- Focused trail comparison evidence: `/tmp/mibici-halo-focus-comparison.png` (1832 × 329 px). Matching map bands from the source and implementation were placed in one image to inspect the halo edge, inner fill, fade, and arrow sharpness.
+- State: dark theme, 17 June 2026, 18:24:32, arrow riders, 60× speed, gender colors, and the previous five simulated minutes of movement.
 
 ## Findings
 
 - P0: none.
 - P1: none.
 - P2: none after iteration.
-- P3: the generated mock shows 287 active riders while the real selected replay instant contains 288. Keeping the data-derived value is intentional and avoids adjusting real output to match illustrative mock data.
-- P3: the generated mock's rider placement and map crop are compositional. The implementation preserves the real route set, current map center, station locations, and interactive zoom behavior.
+- P3: the generated mock uses a deliberately sparse rider set and a photographic Gaussian bloom. The live view uses the complete replay data, so overlapping halos are denser. The implementation keeps the same visual hierarchy by lowering halo opacity while preserving crisp arrows.
+- P3: the live halo uses two broad translucent layers instead of a per-segment blur filter. The visual remains line-free, but this constraint prevents the severe animation slowdown observed with the literal blur implementation.
 
 ## Required fidelity surfaces
 
-- Fonts and typography: the implementation keeps the system sans-serif family, compact yellow title, tabular clock/count numerals, restrained supporting labels, and the mock's weight hierarchy without clipping or wrapping.
-- Spacing and layout rhythm: desktop uses the selected bottom-left transport cluster plus an aligned bottom distribution rail; the phone keeps a 191 px closed HUD with Play always visible and expands upward to 310 px without covering Play. Portrait and landscape navigation controls remain clear of the HUD.
-- Colors and visual tokens: the near-black map surface, yellow actions, magenta women, teal men, neutral aggregate histogram, low-opacity gender series, quiet dividers, and minimal elevation match the selected direction. Light mode retains the same semantic roles.
-- Image and asset quality: the live CARTO basemap and Canvas 2D data remain crisp. Phosphor supplies all UI icons; no raster placeholder, improvised logo, CSS icon, or inline SVG was introduced.
-- Copy and content: the visible controls are limited to `MiBici GDL`, replay date, Play/Pause, speed, current time, active riders, and the adjacent gender key. The symbol and gender filters are absent as requested.
+- Fonts and typography: unchanged from the previously approved HUD; title, time, speed, count, and legend retain their family, weight, sizing, and wrapping.
+- Spacing and layout rhythm: no layout code changed. Desktop and 390 × 844 phone controls preserve their approved positions, and the expanded phone HUD ends exactly at the viewport bottom without covering the map controls.
+- Colors and visual tokens: women remain `#ff4d9d`, men remain `#2bd6cc`, and each trail uses only low-opacity versions of its rider color. No neutral or white centerline is introduced.
+- Image and asset quality: the CARTO basemap, Canvas 2D stations, and Phosphor interface icons remain unchanged. The halo is rendered natively on the rider canvas and adds no raster asset or improvised icon.
+- Copy and content: no text changed. Date, time, playback speed, active-rider count, and the gender legend remain data-derived.
 
 ## Comparison history
 
-1. The first desktop render clipped the selected date and the gender key appeared as duplicated arrowheads. The date field was widened and the key was rebuilt as one dashed trail plus one arrow. The revised capture shows both labels clearly.
-2. The first trail pass was too faint at the normal city zoom. Trail opacity and stroke width were raised while preserving a tapered, semitransparent five-simulated-minute window. The revised comparison keeps paths visible without competing with rider arrows.
-3. The first expanded landscape check moved the map navigation above the viewport because the portrait offset had higher specificity. A landscape-specific expanded-state offset keeps the 42 px controls visible to the left of the sheet. The post-fix capture shows no collision.
-4. The final combined comparison found no remaining actionable P0/P1/P2 mismatch.
+1. The first implementation used a blurred Canvas stroke. It visually matched the mock, but playback with 288 active riders blocked interaction and caused screenshot capture to time out.
+2. The blur filter was removed and replaced by two wide, low-opacity trail layers with a quadratic age fade. The post-fix capture shows a soft color haze without a bright inner line, while arrowheads remain crisp.
+3. Desktop and phone playback then remained responsive during one-second motion checks, and screenshots completed immediately.
+4. The final full-view and focused comparisons found no remaining actionable P0/P1/P2 mismatch.
 
 ## Functional and responsive checks
 
 - The production build passes with Vite 8.
-- Desktop and phone charts each render 96 aggregate bins, two gender comparison series, the current-time marker, and a full-day scrub target.
-- Play is reachable with phone settings closed or open. At 60×, the browser-observed clock advanced from `18:24:32` to `18:25:11` during the playback check, and Pause stopped it.
-- The phone settings toggle opens and closes the date/speed sheet; the selected date stays `17 JUN 2026`, the selected speed stays `60×`, and the 48 × 48 px Play target remains visible.
-- Theme switching updates both application tokens and the CARTO tile source from `dark_all` to `light_all`, then returns to dark.
-- Portrait HUD geometry is 390 × 191 px closed and 390 × 310 px open. Landscape uses a 390 px floating HUD; its map controls remain fully visible in both states.
+- Desktop and phone playback run at the default 60× speed without blocking the interface.
+- Every rider remains an arrow; only its five-minute history is rendered as a halo.
+- The compact phone HUD and expanded date/speed HUD both remain usable at 390 × 844. Expanded HUD geometry is 390 × 310 px; map navigation ends at its upper edge without overlap.
+- Theme switching passes in both directions, and trail colors retain their gender mapping.
 - Browser console: no warnings or errors.
-- The in-app browser cannot inject a simultaneous two-touch CDP gesture. The existing pointer-based pinch implementation was not changed by this redesign; a physical-device pinch remains the appropriate final hardware smoke test.
-
-Focused evidence was captured for the closed phone HUD, expanded portrait sheet, and expanded landscape sheet because those states contain the highest collision risk. No further crop was required: their labels, targets, chart, and navigation controls are readable at native capture size.
 
 final result: passed
