@@ -43,12 +43,6 @@ function PlayIcon({ playing }) {
   </svg>
 }
 
-function ResetIcon() {
-  return <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-    <path d="M4 6h12M8 3h4m-7 3 1 11h8l1-11M8 9v5m4-5v5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-}
-
 function RouteIcon() {
   return <svg width="27" height="27" viewBox="0 0 32 32" fill="none" aria-hidden="true">
     <path d="M3 24c5-11 9 4 14-7 3-7 7-5 12-10" stroke="currentColor" strokeWidth="1.8" strokeDasharray="3 3" strokeLinecap="round" />
@@ -147,7 +141,6 @@ export default function Sidebar({
   setRiderSymbol,
   theme,
   setTheme,
-  onReset,
   loading,
 }) {
   const [collapsed, setCollapsed] = useState(
@@ -274,9 +267,6 @@ export default function Sidebar({
         {GENDERS.map((code) => <GenderButton key={code} code={code} active={genders.includes(code)} onClick={() => toggleGender(code)} />)}
       </div>
 
-      <div className="actions">
-        <button className="action-button" type="button" onClick={onReset}><ResetIcon /> Restablecer género</button>
-      </div>
     </section>
 
     <footer className="source">

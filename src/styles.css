@@ -269,8 +269,7 @@ input[type="range"] {
 
 .speed-grid,
 .symbol-grid,
-.gender-grid,
-.actions {
+.gender-grid {
   display: grid;
   gap: 8px;
 }
@@ -281,8 +280,7 @@ input[type="range"] {
 
 .control-button,
 .symbol-button,
-.gender-button,
-.action-button {
+.gender-button {
   min-height: 37px;
   border: 1px solid var(--line-strong);
   border-radius: 5px;
@@ -295,8 +293,7 @@ input[type="range"] {
 
 .control-button:hover,
 .symbol-button:hover,
-.gender-button:hover,
-.action-button:hover {
+.gender-button:hover {
   border-color: #97a5ad;
   background: var(--surface-raised);
 }
@@ -472,20 +469,6 @@ select:focus-visible,
   border-radius: 3px;
   background: var(--swatch);
   box-shadow: 0 0 7px color-mix(in srgb, var(--swatch), transparent 35%);
-}
-
-.actions {
-  grid-template-columns: 1fr;
-  margin-top: 11px;
-}
-
-.action-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 0 8px;
-  font-size: 11px;
 }
 
 .source {
@@ -858,7 +841,6 @@ select:focus-visible,
 
   .control-button,
   .gender-button,
-  .action-button,
   .select {
     min-height: 44px;
   }

@@ -187,10 +187,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [filteredTrips.length, loading, setCurrentTime])
 
-  function resetFilters() {
-    setGenders([...GENDERS])
-  }
-
   function centerGuadalajara() {
     setCenter(DEFAULT_CENTER)
     setZoom(13)
@@ -223,7 +219,6 @@ export default function App() {
       setRiderSymbol={setRiderSymbol}
       theme={theme}
       setTheme={setTheme}
-      onReset={resetFilters}
       loading={loading}
     />
     <MapSurface
