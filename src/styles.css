@@ -1048,6 +1048,12 @@ select:focus-visible,
     min-height: 38px;
   }
 
+  .speed-grid,
+  .symbol-grid,
+  .gender-grid {
+    padding: 0;
+  }
+
   .symbol-button {
     display: flex;
     min-height: 40px;
