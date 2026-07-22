@@ -637,16 +637,16 @@ select:focus-visible,
   bottom: 22px;
   z-index: 4;
   display: grid;
-  width: 58px;
-  gap: 10px;
+  width: 46px;
+  gap: 8px;
   color: #151718;
 }
 
 .map-recenter,
 .map-zoom-stack button {
   display: grid;
-  width: 58px;
-  height: 58px;
+  width: 46px;
+  height: 46px;
   place-items: center;
   padding: 0;
   border: 1px solid rgb(20 24 27 / 10%);
@@ -656,13 +656,13 @@ select:focus-visible,
 }
 
 .map-recenter {
-  border-radius: 16px;
+  border-radius: 13px;
   box-shadow: 0 7px 20px rgb(0 0 0 / 28%);
 }
 
 .map-zoom-stack {
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 13px;
   box-shadow: 0 7px 20px rgb(0 0 0 / 28%);
 }
 
@@ -883,14 +883,14 @@ select:focus-visible,
   .map-navigation {
     right: 12px;
     bottom: calc(88px + env(safe-area-inset-bottom));
-    width: 52px;
-    gap: 8px;
+    width: 42px;
+    gap: 6px;
   }
 
   .map-recenter,
   .map-zoom-stack button {
-    width: 52px;
-    height: 52px;
+    width: 42px;
+    height: 42px;
   }
 
   .sidebar:not([data-collapsed="true"]) + .map-surface .map-navigation {

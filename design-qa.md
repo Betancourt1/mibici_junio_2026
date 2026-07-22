@@ -17,6 +17,7 @@ The supplied screenshot is a component reference from a different map product, s
 - Icons: bold black Phosphor crosshair, plus, and minus icons preserve the source hierarchy without recreating screenshot pixels.
 - Divider: a thin neutral rule separates zoom-in from zoom-out.
 - Placement: controls sit 18 px from the desktop right edge and 22 px from the bottom; on phones they remain 12 px from the right and clear the collapsed or expanded control panel by at least 12 px.
+- Size: the requested 20% reduction produces 46 × 46 px desktop buttons and 42 × 42 px phone buttons, with icons reduced proportionally.
 - Typography and copy: the reference controls contain no visible labels, so the implementation uses icon-only buttons with accessible Spanish labels.
 
 ## Functional and responsive checks
@@ -26,7 +27,7 @@ The supplied screenshot is a component reference from a different map product, s
 - No birth-year inputs are present.
 - Zoom-in changes the accessible level from 13 to 14; recenter returns it to 13.
 - Rider hover details include user ID, approximate age, origin, and destination.
-- All three map buttons remain at least 52 × 52 px on a 390 px-wide phone viewport.
+- All three map buttons render at 42 × 42 px on a 390 px-wide phone viewport and maintain a 14 px gap above the collapsed panel.
 - Browser console: no warnings or errors.
 
 ## Issue review

@@ -364,14 +364,14 @@ const MapSurface = forwardRef(function MapSurface({
       onPointerDown={(event) => event.stopPropagation()}
     >
       <button className="map-recenter" type="button" aria-label="Centrar mapa en Guadalajara" onClick={onCenter}>
-        <Crosshair size={31} weight="bold" aria-hidden="true" />
+        <Crosshair size={25} weight="bold" aria-hidden="true" />
       </button>
       <div className="map-zoom-stack">
         <button type="button" aria-label="Acercar mapa" disabled={zoom >= MAX_ZOOM} onClick={() => onZoomChange((current) => Math.min(MAX_ZOOM, current + 1))}>
-          <Plus size={31} weight="bold" aria-hidden="true" />
+          <Plus size={25} weight="bold" aria-hidden="true" />
         </button>
         <button type="button" aria-label="Alejar mapa" disabled={zoom <= MIN_ZOOM} onClick={() => onZoomChange((current) => Math.max(MIN_ZOOM, current - 1))}>
-          <Minus size={31} weight="bold" aria-hidden="true" />
+          <Minus size={25} weight="bold" aria-hidden="true" />
         </button>
       </div>
     </div>
