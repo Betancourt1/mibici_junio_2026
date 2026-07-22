@@ -649,7 +649,7 @@ select:focus-visible,
 }
 
 .map-navigation {
-  position: absolute;
+  position: fixed;
   right: 18px;
   bottom: 22px;
   z-index: 4;
