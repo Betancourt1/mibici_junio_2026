@@ -69,9 +69,14 @@ const MapSurface = forwardRef(function MapSurface({
   const containerRef = useRef(null)
   const stationCanvasRef = useRef(null)
   const bikeCanvasRef = useRef(null)
+  const activeRidersRef = useRef([])
   const dragRef = useRef(null)
+  const hoveredTripIdRef = useRef(null)
+  const pinnedTooltipRef = useRef(false)
+  const lastTooltipUpdateRef = useRef(0)
   const [size, setSize] = useState({ width: 1, height: 1 })
   const [dragging, setDragging] = useState(false)
+  const [riderDetails, setRiderDetails] = useState(null)
   const dpr = Math.min(globalThis.devicePixelRatio || 1, 2)
   const centerPoint = useMemo(() => project(center.lat, center.lng), [center.lat, center.lng])
   const viewRef = useRef({ centerPoint, zoom, size, dpr })
@@ -176,6 +181,7 @@ const MapSurface = forwardRef(function MapSurface({
     context.clearRect(0, 0, view.size.width, view.size.height)
     context.lineCap = 'round'
     context.lineJoin = 'round'
+    const activeRiders = []
 
     for (const trip of trips) {
       const progress = (time - trip.start) / trip.duration
@@ -185,14 +191,37 @@ const MapSurface = forwardRef(function MapSurface({
       const x = (point.x - view.centerPoint.x) * scale + view.size.width / 2
       const y = (point.y - view.centerPoint.y) * scale + view.size.height / 2
       if (x < -32 || y < -32 || x > view.size.width + 32 || y > view.size.height + 32) continue
+      activeRiders.push({ trip, x, y })
 
       context.save()
       context.translate(x, y)
+      if (trip.id === hoveredTripIdRef.current) {
+        context.beginPath()
+        context.arc(0, 0, 10, 0, Math.PI * 2)
+        context.fillStyle = theme === 'light' ? 'rgba(255, 255, 255, .84)' : 'rgba(3, 8, 12, .8)'
+        context.fill()
+        context.lineWidth = 2
+        context.strokeStyle = COLORS[trip.gender] ?? COLORS.NULL
+        context.stroke()
+      }
       context.rotate(point.angle)
       drawRiderSymbol(context, riderSymbol, COLORS[trip.gender] ?? COLORS.NULL)
       context.restore()
     }
-  }, [riderSymbol, trips])
+
+    activeRidersRef.current = activeRiders
+    if (hoveredTripIdRef.current && performance.now() - lastTooltipUpdateRef.current > 80) {
+      const hovered = activeRiders.find(({ trip }) => trip.id === hoveredTripIdRef.current)
+      if (hovered) {
+        setRiderDetails((current) => current ? { ...current, x: hovered.x, y: hovered.y } : current)
+        lastTooltipUpdateRef.current = performance.now()
+      } else {
+        hoveredTripIdRef.current = null
+        pinnedTooltipRef.current = false
+        setRiderDetails(null)
+      }
+    }
+  }, [riderSymbol, theme, trips])
 
   useImperativeHandle(ref, () => ({ drawBikes }), [drawBikes])
 
@@ -204,15 +233,26 @@ const MapSurface = forwardRef(function MapSurface({
   function handlePointerDown(event) {
     if (event.button !== 0) return
     event.currentTarget.setPointerCapture(event.pointerId)
-    dragRef.current = { x: event.clientX, y: event.clientY, centerPoint }
+    dragRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      centerPoint,
+      moved: false,
+    }
     setDragging(true)
   }
 
   function handlePointerMove(event) {
-    if (!dragRef.current) return
+    if (!dragRef.current) {
+      if (event.pointerType !== 'touch') showNearestRider(event.clientX, event.clientY, 17, false)
+      return
+    }
     const scale = 2 ** zoom
     const dx = event.clientX - dragRef.current.x
     const dy = event.clientY - dragRef.current.y
+    if (Math.hypot(dx, dy) > 4) dragRef.current.moved = true
+    if (!dragRef.current.moved) return
+    clearRiderDetails()
     onCenterChange(unproject(
       dragRef.current.centerPoint.x - dx / scale,
       dragRef.current.centerPoint.y - dy / scale,
@@ -220,12 +260,56 @@ const MapSurface = forwardRef(function MapSurface({
   }
 
   function handlePointerUp(event) {
+    if (dragRef.current && !dragRef.current.moved) {
+      showNearestRider(event.clientX, event.clientY, event.pointerType === 'touch' ? 28 : 17, true)
+    }
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
     dragRef.current = null
     setDragging(false)
   }
+
+  function clearRiderDetails() {
+    if (!hoveredTripIdRef.current) return
+    hoveredTripIdRef.current = null
+    pinnedTooltipRef.current = false
+    setRiderDetails(null)
+    drawBikes(currentTime)
+  }
+
+  function showNearestRider(clientX, clientY, radius, pinned) {
+    const bounds = containerRef.current?.getBoundingClientRect()
+    if (!bounds) return
+    const x = clientX - bounds.left
+    const y = clientY - bounds.top
+    let nearest = null
+    let nearestDistance = radius
+
+    for (const rider of activeRidersRef.current) {
+      const distance = Math.hypot(rider.x - x, rider.y - y)
+      if (distance <= nearestDistance) {
+        nearest = rider
+        nearestDistance = distance
+      }
+    }
+
+    if (!nearest) {
+      if (!pinnedTooltipRef.current) clearRiderDetails()
+      return
+    }
+
+    hoveredTripIdRef.current = nearest.trip.id
+    pinnedTooltipRef.current = pinned
+    setRiderDetails({ ...nearest, pinned })
+    drawBikes(currentTime)
+  }
+
+  const tooltipStation = (stationId) => stationById.get(stationId)?.name ?? `Estación ${stationId}`
+  const tooltipLeft = riderDetails
+    ? Math.max(Math.min(150, size.width / 2), Math.min(size.width - Math.min(150, size.width / 2), riderDetails.x))
+    : 0
+  const tooltipBelow = riderDetails?.y < 155
 
   return <main
     ref={containerRef}
@@ -240,6 +324,9 @@ const MapSurface = forwardRef(function MapSurface({
     onPointerUp={handlePointerUp}
     onPointerCancel={handlePointerUp}
     onLostPointerCapture={handlePointerUp}
+    onPointerLeave={() => {
+      if (!dragRef.current && !pinnedTooltipRef.current) clearRiderDetails()
+    }}
   >
     <div className="tile-layer" aria-hidden="true">
       {tiles.map((tile) => <img
@@ -265,6 +352,18 @@ const MapSurface = forwardRef(function MapSurface({
       height={Math.max(1, Math.round(size.height * dpr))}
       aria-hidden="true"
     />
+    {riderDetails && <div
+      className="rider-tooltip"
+      data-placement={tooltipBelow ? 'below' : 'above'}
+      role="status"
+      style={{ left: tooltipLeft, top: riderDetails.y }}
+      onPointerDown={(event) => event.stopPropagation()}
+    >
+      {riderDetails.pinned && <button type="button" aria-label="Cerrar detalles del viaje" onClick={clearRiderDetails}>×</button>}
+      <strong>Usuario {riderDetails.trip.user}</strong>
+      <span><b>Origen</b>{tooltipStation(riderDetails.trip.origin)}</span>
+      <span><b>Destino</b>{tooltipStation(riderDetails.trip.destination)}</span>
+    </div>}
     {statusMessage
       ? <div className="map-empty">{statusMessage}</div>
       : !trips.length && <div className="map-empty">Ninguna trayectoria coincide con los filtros actuales.</div>}
