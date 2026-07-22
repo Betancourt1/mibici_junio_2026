@@ -54,12 +54,14 @@ const MapSurface = forwardRef(function MapSurface({
   statusMessage,
 }, ref) {
   const containerRef = useRef(null)
+  const mapContentRef = useRef(null)
   const stationCanvasRef = useRef(null)
   const bikeCanvasRef = useRef(null)
   const activeRidersRef = useRef([])
   const activePointersRef = useRef(new Map())
   const dragRef = useRef(null)
   const pinchRef = useRef(null)
+  const pendingPinchCommitRef = useRef(false)
   const hoveredTripIdRef = useRef(null)
   const pinnedTooltipRef = useRef(false)
   const lastTooltipUpdateRef = useRef(0)
@@ -70,6 +72,15 @@ const MapSurface = forwardRef(function MapSurface({
   const centerPoint = useMemo(() => project(center.lat, center.lng), [center.lat, center.lng])
   const viewRef = useRef({ centerPoint, zoom, size, dpr })
   viewRef.current = { centerPoint, zoom, size, dpr }
+
+  useLayoutEffect(() => {
+    const content = mapContentRef.current
+    if (!content || !pendingPinchCommitRef.current || pinchRef.current) return
+    content.style.transform = ''
+    content.style.transformOrigin = ''
+    content.style.willChange = ''
+    pendingPinchCommitRef.current = false
+  }, [centerPoint.x, centerPoint.y, zoom])
 
   useLayoutEffect(() => {
     const element = containerRef.current
@@ -100,23 +111,29 @@ const MapSurface = forwardRef(function MapSurface({
   }, [onZoomChange])
 
   const tiles = useMemo(() => {
-    const scale = 2 ** zoom
-    const worldX = centerPoint.x * scale
-    const worldY = centerPoint.y * scale
-    const startX = Math.floor((worldX - size.width / 2) / TILE_SIZE) - 1
-    const endX = Math.floor((worldX + size.width / 2) / TILE_SIZE) + 1
-    const startY = Math.max(0, Math.floor((worldY - size.height / 2) / TILE_SIZE) - 1)
-    const endY = Math.min(scale - 1, Math.floor((worldY + size.height / 2) / TILE_SIZE) + 1)
+    const tileZoom = Math.round(zoom)
+    const tileCount = 2 ** tileZoom
+    const tileScale = 2 ** (zoom - tileZoom)
+    const tileSize = TILE_SIZE * tileScale
+    const worldX = centerPoint.x * tileCount
+    const worldY = centerPoint.y * tileCount
+    const halfWidth = size.width / (2 * tileScale)
+    const halfHeight = size.height / (2 * tileScale)
+    const startX = Math.floor((worldX - halfWidth) / TILE_SIZE) - 1
+    const endX = Math.floor((worldX + halfWidth) / TILE_SIZE) + 1
+    const startY = Math.max(0, Math.floor((worldY - halfHeight) / TILE_SIZE) - 1)
+    const endY = Math.min(tileCount - 1, Math.floor((worldY + halfHeight) / TILE_SIZE) + 1)
     const result = []
 
     for (let x = startX; x <= endX; x += 1) {
       for (let y = startY; y <= endY; y += 1) {
-        const wrappedX = (x % scale + scale) % scale
+        const wrappedX = (x % tileCount + tileCount) % tileCount
         result.push({
-          key: `${zoom}/${x}/${y}`,
-          src: `https://a.basemaps.cartocdn.com/${theme === 'light' ? 'light_all' : 'dark_all'}/${zoom}/${wrappedX}/${y}.png`,
-          left: x * TILE_SIZE - worldX + size.width / 2,
-          top: y * TILE_SIZE - worldY + size.height / 2,
+          key: `${tileZoom}/${x}/${y}`,
+          src: `https://a.basemaps.cartocdn.com/${theme === 'light' ? 'light_all' : 'dark_all'}/${tileZoom}/${wrappedX}/${y}.png`,
+          left: (x * TILE_SIZE - worldX) * tileScale + size.width / 2,
+          top: (y * TILE_SIZE - worldY) * tileScale + size.height / 2,
+          size: tileSize,
         })
       }
     }
@@ -225,12 +242,17 @@ const MapSurface = forwardRef(function MapSurface({
     const metrics = getPinchMetrics([...activePointersRef.current.values()].slice(0, 2))
     const view = viewRef.current
     const scale = 2 ** view.zoom
+    const localX = metrics.x - bounds.left
+    const localY = metrics.y - bounds.top
     pinchRef.current = {
       distance: Math.max(1, metrics.distance),
       zoom: view.zoom,
+      startX: localX,
+      startY: localY,
+      metrics,
       focalPoint: {
-        x: view.centerPoint.x + (metrics.x - bounds.left - view.size.width / 2) / scale,
-        y: view.centerPoint.y + (metrics.y - bounds.top - view.size.height / 2) / scale,
+        x: view.centerPoint.x + (localX - view.size.width / 2) / scale,
+        y: view.centerPoint.y + (localY - view.size.height / 2) / scale,
       },
     }
     dragRef.current = null
@@ -265,14 +287,18 @@ const MapSurface = forwardRef(function MapSurface({
       const metrics = getPinchMetrics([...activePointersRef.current.values()].slice(0, 2))
       const nextZoom = Math.max(MIN_ZOOM, Math.min(
         MAX_ZOOM,
-        Math.round(pinchRef.current.zoom + Math.log2(Math.max(1, metrics.distance) / pinchRef.current.distance)),
+        pinchRef.current.zoom + Math.log2(Math.max(1, metrics.distance) / pinchRef.current.distance),
       ))
-      const scale = 2 ** nextZoom
-      onZoomChange(nextZoom)
-      onCenterChange(unproject(
-        pinchRef.current.focalPoint.x - (metrics.x - bounds.left - size.width / 2) / scale,
-        pinchRef.current.focalPoint.y - (metrics.y - bounds.top - size.height / 2) / scale,
-      ))
+      const content = mapContentRef.current
+      const localX = metrics.x - bounds.left
+      const localY = metrics.y - bounds.top
+      pinchRef.current.metrics = metrics
+      pinchRef.current.nextZoom = nextZoom
+      if (content) {
+        content.style.willChange = 'transform'
+        content.style.transformOrigin = `${pinchRef.current.startX}px ${pinchRef.current.startY}px`
+        content.style.transform = `translate3d(${localX - pinchRef.current.startX}px, ${localY - pinchRef.current.startY}px, 0) scale(${2 ** (nextZoom - pinchRef.current.zoom)})`
+      }
       return
     }
     if (!dragRef.current) {
@@ -293,7 +319,8 @@ const MapSurface = forwardRef(function MapSurface({
   }
 
   function handlePointerUp(event) {
-    const wasPinching = Boolean(pinchRef.current)
+    const completedPinch = pinchRef.current
+    const wasPinching = Boolean(completedPinch)
     const wasTap = !wasPinching
       && event.type === 'pointerup'
       && dragRef.current?.pointerId === event.pointerId
@@ -307,16 +334,30 @@ const MapSurface = forwardRef(function MapSurface({
     }
     if (wasPinching) {
       if (activePointersRef.current.size >= 2) {
+        mapContentRef.current?.removeAttribute('style')
         beginPinch()
       } else {
         pinchRef.current = null
+        const bounds = containerRef.current?.getBoundingClientRect()
+        const metrics = completedPinch.metrics
+        const nextZoom = completedPinch.nextZoom ?? completedPinch.zoom
+        const scale = 2 ** nextZoom
+        const nextCenterPoint = bounds
+          ? {
+              x: completedPinch.focalPoint.x - (metrics.x - bounds.left - size.width / 2) / scale,
+              y: completedPinch.focalPoint.y - (metrics.y - bounds.top - size.height / 2) / scale,
+            }
+          : viewRef.current.centerPoint
+        pendingPinchCommitRef.current = true
+        onZoomChange(nextZoom)
+        onCenterChange(unproject(nextCenterPoint.x, nextCenterPoint.y))
         const remaining = [...activePointersRef.current.entries()][0]
         dragRef.current = remaining
           ? {
               pointerId: remaining[0],
               x: remaining[1].x,
               y: remaining[1].y,
-              centerPoint: viewRef.current.centerPoint,
+              centerPoint: nextCenterPoint,
               moved: true,
             }
           : null
@@ -389,30 +430,32 @@ const MapSurface = forwardRef(function MapSurface({
       if (!dragRef.current && !pinnedTooltipRef.current) clearRiderDetails()
     }}
   >
-    <div className="tile-layer" aria-hidden="true">
-      {tiles.map((tile) => <img
-        key={tile.key}
-        className="map-tile"
-        src={tile.src}
-        alt=""
-        draggable="false"
-        style={{ left: tile.left, top: tile.top }}
-      />)}
+    <div ref={mapContentRef} className="map-content">
+      <div className="tile-layer" aria-hidden="true">
+        {tiles.map((tile) => <img
+          key={tile.key}
+          className="map-tile"
+          src={tile.src}
+          alt=""
+          draggable="false"
+          style={{ left: tile.left, top: tile.top, width: tile.size, height: tile.size }}
+        />)}
+      </div>
+      <canvas
+        ref={stationCanvasRef}
+        className="map-canvas"
+        width={Math.max(1, Math.round(size.width * dpr))}
+        height={Math.max(1, Math.round(size.height * dpr))}
+        aria-hidden="true"
+      />
+      <canvas
+        ref={bikeCanvasRef}
+        className="map-canvas"
+        width={Math.max(1, Math.round(size.width * dpr))}
+        height={Math.max(1, Math.round(size.height * dpr))}
+        aria-hidden="true"
+      />
     </div>
-    <canvas
-      ref={stationCanvasRef}
-      className="map-canvas"
-      width={Math.max(1, Math.round(size.width * dpr))}
-      height={Math.max(1, Math.round(size.height * dpr))}
-      aria-hidden="true"
-    />
-    <canvas
-      ref={bikeCanvasRef}
-      className="map-canvas"
-      width={Math.max(1, Math.round(size.width * dpr))}
-      height={Math.max(1, Math.round(size.height * dpr))}
-      aria-hidden="true"
-    />
     {riderDetails && <div
       className="rider-tooltip"
       data-placement={tooltipBelow ? 'below' : 'above'}
@@ -432,7 +475,7 @@ const MapSurface = forwardRef(function MapSurface({
     <div
       className="map-navigation"
       role="group"
-      aria-label={`Controles del mapa. Nivel ${zoom}`}
+      aria-label={`Controles del mapa. Nivel ${Number.isInteger(zoom) ? zoom : zoom.toFixed(1)}`}
       onPointerDown={(event) => event.stopPropagation()}
     >
       <button className="map-recenter" type="button" aria-label="Centrar mapa en Guadalajara" onClick={onCenter}>

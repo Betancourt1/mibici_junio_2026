@@ -540,6 +540,7 @@ select:focus-visible,
   cursor: grabbing;
 }
 
+.map-content,
 .tile-layer,
 .map-canvas {
   position: absolute;
@@ -548,10 +549,13 @@ select:focus-visible,
   height: 100%;
 }
 
+.map-content {
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+
 .map-tile {
   position: absolute;
-  width: 256px;
-  height: 256px;
   max-width: none;
   pointer-events: none;
   -webkit-user-drag: none;
