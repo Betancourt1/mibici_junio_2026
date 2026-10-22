@@ -12,6 +12,8 @@ import { Crosshair, Minus, Plus } from '@phosphor-icons/react'
 import { COLORS, MAX_ZOOM, MIN_ZOOM } from '../config.js'
 import { pointAlong, project, TILE_SIZE, unproject } from './mercator.js'
 
+const CARTO_API_KEY = import.meta.env.VITE_CARTO_API_KEY?.trim()
+const CARTO_KEY_QUERY = CARTO_API_KEY ? `?key=${encodeURIComponent(CARTO_API_KEY)}` : ''
 const TRAIL_SECONDS = 5 * 60
 
 function drawRiderArrow(context, color) {
@@ -169,7 +171,7 @@ const MapSurface = forwardRef(function MapSurface({
         const wrappedX = (x % tileCount + tileCount) % tileCount
         result.push({
           key: `${tileZoom}/${x}/${y}`,
-          src: `https://a.basemaps.cartocdn.com/${theme === 'light' ? 'light_all' : 'dark_all'}/${tileZoom}/${wrappedX}/${y}.png`,
+          src: `https://a.basemaps.cartocdn.com/${theme === 'light' ? 'light_all' : 'dark_all'}/${tileZoom}/${wrappedX}/${y}.png${CARTO_KEY_QUERY}`,
           left: (x * TILE_SIZE - worldX) * tileScale + size.width / 2,
           top: (y * TILE_SIZE - worldY) * tileScale + size.height / 2,
           size: tileSize,
