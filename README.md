@@ -95,6 +95,26 @@ El servidor de desarrollo queda disponible en <http://localhost:5173> y escucha 
 | `npm run preview` | Sirve localmente el paquete de producción. |
 | `npm run deploy` | Compila y despliega los recursos estáticos con Wrangler. |
 
+## Clave del mapa base
+
+El mapa requiere una clave de [CARTO Basemaps](https://carto.com/basemaps/apikey).
+Configura `VITE_CARTO_API_KEY` antes de compilar. Para desarrollo local, crea
+un archivo `.env.local` (ignorado por Git):
+
+```dotenv
+VITE_CARTO_API_KEY=tu_clave_de_carto
+```
+
+En Cloudflare Workers Builds, abre **Settings → Build → Variables and secrets**
+y añade `VITE_CARTO_API_KEY` con el valor de tu clave. Después ejecuta una nueva
+compilación y despliegue. Es una variable de compilación de Vite: configurarla
+únicamente como variable de ejecución del Worker no actualiza los archivos estáticos.
+
+La clave se incorpora al JavaScript público y a las URLs de las teselas de ambos
+temas. Utiliza una clave de Basemaps para navegador, restringida a
+`mibici.fbetancourt.work` en CARTO. No uses una credencial privada de administración.
+Si cambias la clave, vuelve a compilar y desplegar.
+
 ## Compilación de producción
 
 ```bash
